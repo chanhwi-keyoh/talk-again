@@ -58,11 +58,11 @@ export const messages = {
     "emergency.button": "응급",
     "emergency.stop": "멈추기",
     "emergency.aria":
-      "응급 상황 도움 요청. 누르면 큰 소리로 도움 요청 문구를 3번 반복해요. 다시 누르면 멈춰요.",
+      "응급 상황 도움 요청. 누르면 큰 소리로 도움 요청 문구를 멈출 때까지 계속 반복해요. 다시 누르면 멈춰요.",
     "emergency.banner.heading": "지금 도움이 필요해요",
     "settings.emergency.heading": "응급 메시지",
     "settings.emergency.help":
-      "위쪽 빨간 '응급' 단추를 누르면 이 글을 큰 소리로 3번 말해요. 주소를 함께 적어 두면 119가 더 빨리 찾아와요.",
+      "위쪽 빨간 '응급' 단추를 누르면 이 글을 큰 소리로 멈출 때까지 계속 말해요. 다시 누르면 멈춰요. 주소를 함께 적어 두면 119가 더 빨리 찾아와요.",
     "settings.emergency.label": "응급 상황에서 말할 내용",
     "settings.emergency.preview": "한 번 들어보기",
     "settings.emergency.reset": "기본 글로 되돌리기",
@@ -113,11 +113,11 @@ export const messages = {
     "emergency.button": "SOS",
     "emergency.stop": "Stop",
     "emergency.aria":
-      "Emergency. Tap to broadcast the help message loudly three times. Tap again to stop.",
+      "Emergency. Tap to broadcast the help message loudly on repeat until stopped. Tap again to stop.",
     "emergency.banner.heading": "I need help right now",
     "settings.emergency.heading": "Emergency message",
     "settings.emergency.help":
-      "The red SOS button at the top will say this aloud, three times in a row. Include your address so 119 can find you faster.",
+      "The red SOS button at the top will say this aloud on repeat until you tap Stop. Include your address so 119 can find you faster.",
     "settings.emergency.label": "What to say in an emergency",
     "settings.emergency.preview": "Listen once",
     "settings.emergency.reset": "Restore default text",

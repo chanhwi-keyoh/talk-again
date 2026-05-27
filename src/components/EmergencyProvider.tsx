@@ -10,7 +10,6 @@ import {
   DEFAULT_EMERGENCY_MESSAGE_KO,
   EmergencyContext,
   EMERGENCY_PAUSE_MS,
-  EMERGENCY_REPEATS,
 } from "@/lib/emergency";
 import { STORAGE_KEYS, readJSON, writeJSON } from "@/lib/storage";
 import { useTTS } from "@/hooks/useTTS";
@@ -64,8 +63,12 @@ export function EmergencyProvider({ children }: { children: ReactNode }) {
     setIsActive(true);
 
     try {
-      for (let i = 0; i < EMERGENCY_REPEATS; i++) {
-        if (ctrl.signal.aborted) break;
+      // Loop until the user explicitly stops. An emergency should keep
+      // broadcasting until help arrives — auto-quieting after N attempts
+      // creates the failure mode "elder fell at minute 16, app stopped at
+      // minute 1, no one heard". Cost is one-and-done because the cached
+      // Blob serves every repeat after the first.
+      while (!ctrl.signal.aborted) {
         await speak(text, {
           volume: 1.0,
           // Neutral on purpose: clarity beats urgency for a stranger / 119
@@ -75,19 +78,19 @@ export function EmergencyProvider({ children }: { children: ReactNode }) {
           signal: ctrl.signal,
         });
         if (ctrl.signal.aborted) break;
-        if (i < EMERGENCY_REPEATS - 1) {
-          await new Promise<void>((resolve) => {
-            const t = window.setTimeout(resolve, EMERGENCY_PAUSE_MS);
-            ctrl.signal.addEventListener(
-              "abort",
-              () => {
-                window.clearTimeout(t);
-                resolve();
-              },
-              { once: true },
-            );
-          });
-        }
+        // Inter-repeat pause that is itself abortable — stop() takes effect
+        // mid-pause, not just at the next speak() boundary.
+        await new Promise<void>((resolve) => {
+          const t = window.setTimeout(resolve, EMERGENCY_PAUSE_MS);
+          ctrl.signal.addEventListener(
+            "abort",
+            () => {
+              window.clearTimeout(t);
+              resolve();
+            },
+            { once: true },
+          );
+        });
       }
     } finally {
       if (abortRef.current === ctrl) abortRef.current = null;

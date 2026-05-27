@@ -13,11 +13,15 @@ import { createContext, useContext } from "react";
 export const DEFAULT_EMERGENCY_MESSAGE_KO =
   "도와주세요. 저는 말을 못 합니다. 119에 전화해 주세요.";
 
-/** Number of times the message is spoken back-to-back on a single trigger. */
-export const EMERGENCY_REPEATS = 3;
-
 /** Pause between repeats, ms. Long enough to be perceived as separate sentences,
- *  short enough that a passer-by hears all three within ~15 seconds. */
+ *  short enough that a passer-by hears the message multiple times per minute.
+ *  The loop runs until the user explicitly stops it — an emergency should keep
+ *  broadcasting until help arrives, not auto-quiet after N attempts.
+ *
+ *  Cost note: the configured message is identical every iteration, so the
+ *  IndexedDB blob cache makes every repeat after the first a zero-network,
+ *  zero-credit cache hit. An hour-long broadcast still bills exactly one
+ *  ElevenLabs call. */
 export const EMERGENCY_PAUSE_MS = 500;
 
 export interface EmergencyContextValue {

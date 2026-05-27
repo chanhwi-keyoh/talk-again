@@ -252,3 +252,29 @@
 - 설정 → 응급 메시지에 외할아버지 댁 진짜 주소 박기 (예: "도와주세요. 저는 말을 못 합니다. 여기는 OO시 OO동 OO아파트 OO호입니다. 119에 전화해 주세요.")
 - 응급 단추 탭 → 헤더가 빨간 배너로 바뀌면서 주소 큰 글씨로 보이는지 확인
 - 멈추기 단추 → 배너 사라지고 normal header 복귀하는지 확인
+
+---
+
+## Entry 6 — 2026-05-27 · 응급 발화 무한 반복 (멈출 때까지)
+
+**요청** (사용자, 시연 직전)
+- "SOS는 멈출 때까지 반복으로 하자"
+
+**Claude Code가 만든 것**
+- `src/lib/emergency.ts` — `EMERGENCY_REPEATS` 상수 제거. `EMERGENCY_PAUSE_MS` 만 남김. 주석에 cost 분석 (cache hit → 무한 반복해도 ElevenLabs 호출 1회로 끝) + design intent 명시.
+- `src/components/EmergencyProvider.tsx` — `for (i = 0; i < 3; i++)` 를 `while (!ctrl.signal.aborted)` 로 교체. inter-repeat pause 도 여전히 abortable.
+- i18n 4문자열 동시 업데이트 (KO/EN, aria + settings help):
+  - "3번 반복" → "멈출 때까지 계속 반복"
+  - "three times" → "on repeat until stopped"
+
+**디자인 결정**
+- **상한 없음** — 60회/100회 같은 안전 cap 도 고려했지만 다음 두 이유로 제거:
+  1. 비용: 같은 텍스트라 IndexedDB cache hit → 1시간 broadcast 도 ElevenLabs 호출 1회. credits 위협 0.
+  2. 의도: "16분 만에 쓰러진 외할아버지를, 앱이 1분 만에 침묵해서 아무도 못 들음" 시나리오가 가장 큰 failure mode. 자동 종료는 안전 cap 이 아니라 위험 cap 이 됨.
+- **시각 배너도 무한 유지** — broadcast 동안 EmergencyBanner 가 떠 있고 stop 시 normal header 로 복귀. 무한 반복으로 바뀌어도 이 흐름은 동일.
+- **inter-repeat pause abortable** — stop() 이 speak() 사이의 500ms pause 도중에도 즉시 효과 발생. 사용자가 멈추기를 눌렀는데 0.5초 더 기다리지 않도록.
+
+**검증**
+- `npm run typecheck` ✓
+- `npm run build` ✓ (169.5KB JS, 변동 없음)
+- 수동 확인 필요 (사용자): 응급 단추 → 10초 이상 자연스럽게 반복되는지, 멈추기 단추로 즉시 stop 되는지.
