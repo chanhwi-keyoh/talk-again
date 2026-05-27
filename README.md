@@ -3,7 +3,98 @@
 > A communication-aid PWA for my grandfather, who has been unable to speak since a tongue resection.
 > SCAD AI 201, Project 3 — "Persons Required".
 
-Background, decisions, and constraints in [`docs/Design_Argument.md`](./docs/Design_Argument.md) and [`docs/Platform_Rationale.md`](./docs/Platform_Rationale.md). All design decisions made with Claude Code are logged in [`docs/AI_Direction_Log.md`](./docs/AI_Direction_Log.md).
+**Live URL:** _add Vercel URL here once deploy is green_
+**Repo:** https://github.com/chanhwi-keyoh/talk-again
+
+---
+
+## Submission documents
+
+Required by the Project 3 grading checklist — every link is part of this repo.
+
+| Document | File | Status |
+|---|---|---|
+| Design Argument | [`docs/Design_Argument.md`](./docs/Design_Argument.md) | ✅ Final (written by Chanhwi) |
+| Research Documentation | [`docs/Research_Documentation.md`](./docs/Research_Documentation.md) | 🟡 Needs KakaoTalk quotes inserted |
+| Platform Rationale | [`docs/Platform_Rationale.md`](./docs/Platform_Rationale.md) | ✅ Final |
+| AI Direction Log | [`docs/AI_Direction_Log.md`](./docs/AI_Direction_Log.md) | ✅ 6 entries |
+| Records of Resistance | [`docs/Records_of_Resistance.md`](./docs/Records_of_Resistance.md) | 🟡 Draft — Chanhwi to revise into own voice |
+| Five Questions | [`docs/Five_Questions.md`](./docs/Five_Questions.md) | 🟡 Draft — Chanhwi to revise into own voice |
+| Post-Mortem | [`docs/Post_Mortem.md`](./docs/Post_Mortem.md) | 🟡 Stub — Chanhwi to fill bracketed sections |
+| User Testing Evidence | [`docs/User_Testing_Evidence.md`](./docs/User_Testing_Evidence.md) + [`docs/evidence/`](./docs/evidence/) | 🟡 Stub — KakaoTalk screenshots to add |
+| Mermaid system diagram | [`architecture.mmd`](./architecture.mmd) + inline below | ✅ |
+
+---
+
+## System architecture (Mermaid)
+
+```mermaid
+flowchart TB
+    subgraph User["User (Grandfather)"]
+        Tap["Tap input"]
+    end
+
+    subgraph iPad["iPad — Safari PWA (installed via 'Add to Home Screen')"]
+        QP["QuickPhrasePanel<br/>10 one-tap phrases<br/>color + icon + label"]
+        EP["EmotionPicker<br/>7 emotions (incl. neutral)<br/>persisted in localStorage"]
+        EB["EmergencyButton<br/>loops until stopped"]
+        EBan["EmergencyBanner<br/>(swaps in for header<br/>during broadcast)"]
+        SP["SettingsPanel<br/>UI language KO/EN<br/>AI vs system voice<br/>emergency message edit<br/>voice diagnostic"]
+
+        useTTS["useTTS hook<br/>engine-agnostic<br/>silent failover<br/>cancel-then-speak"]
+
+        EL["elevenLabsProvider<br/>fetch /api/tts<br/>play HTMLAudioElement"]
+        WS["webSpeechProvider<br/>SpeechSynthesis<br/>ko-KR voice picker<br/>(male → Siri → Yuna)"]
+
+        LS["localStorage<br/>• UI language<br/>• voice engine pref<br/>• current emotion<br/>• emergency message"]
+        IDB["IndexedDB<br/>audio Blob cache<br/>(voiceVersion|emotion|text)"]
+    end
+
+    subgraph Vercel["Vercel Edge"]
+        API["/api/tts<br/>POST text+emotion+lang<br/>→ audio/mpeg stream<br/>(API key server-only)"]
+    end
+
+    subgraph EL11["ElevenLabs"]
+        TTS_API["Text-to-Speech API<br/>model: eleven_turbo_v2_5<br/>voice: designed Korean male<br/>language_code: ko"]
+    end
+
+    subgraph Audio["Output"]
+        Speaker["iPad speaker<br/>designed Korean voice"]
+    end
+
+    Tap --> QP
+    Tap --> EP
+    Tap --> EB
+    Tap --> SP
+
+    QP --> useTTS
+    EB --> useTTS
+    SP -. preview .-> useTTS
+
+    EP -. emotion .-> useTTS
+    SP -. engine pref .-> useTTS
+    SP -. UI lang .-> useTTS
+
+    useTTS --> EL
+    useTTS -. fallback on failure .-> WS
+
+    EL -- cache hit --> IDB
+    EL -- cache miss --> API
+    API --> TTS_API
+    TTS_API -- audio/mpeg --> API
+    API --> EL
+    EL -- write blob --> IDB
+
+    EL --> Speaker
+    WS --> Speaker
+
+    EB -. while active .-> EBan
+
+    SP <--> LS
+    EP <--> LS
+```
+
+(Source: [`architecture.mmd`](./architecture.mmd))
 
 ---
 

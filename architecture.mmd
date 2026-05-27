@@ -1,68 +1,76 @@
-%% Talk Again — System Architecture
+%% Talk Again — System Architecture (matches what ships in this build)
 %% Render with: https://mermaid.live
 
 flowchart TB
-    subgraph User["사용자 (외할아버지)"]
-        Tap["탭 입력"]
-        Hand["손글씨 (Apple Pencil)"]
-        Voice["주변 대화 음성"]
-        Type["키보드 입력 (마지막 수단)"]
+    subgraph User["User (Grandfather)"]
+        Tap["Tap input"]
     end
 
-    subgraph iPad["iPad 10th gen — Safari PWA"]
-        QP["Quick Phrase Panel<br/>(10개 즉시 발화 버튼)"]
-        ED["Emotion Dial<br/>(6가지 감정)"]
-        SS["Suggestion Stack<br/>(AI 답변 3개)"]
-        FT["Free Text Input"]
-        HP["Handwriting Pad<br/>(stretch)"]
-        EB["Emergency Button"]
-        PO["Persona Onboarding<br/>(첫 실행)"]
+    subgraph iPad["iPad — Safari PWA (installed via 'Add to Home Screen')"]
+        QP["QuickPhrasePanel<br/>10 one-tap phrases<br/>color + icon + label"]
+        EP["EmotionPicker<br/>7 emotions (incl. neutral)<br/>persisted in localStorage"]
+        EB["EmergencyButton<br/>loops until stopped"]
+        EBan["EmergencyBanner<br/>(swaps in for header<br/>during broadcast)"]
+        SP["SettingsPanel<br/>UI language KO/EN<br/>AI vs system voice<br/>emergency message edit<br/>voice diagnostic"]
 
-        TTS["useTTS Hook<br/>Web Speech Synthesis<br/>ko-KR elder male<br/>+ prosody 변조"]
-        STT["useSTT Hook<br/>Web Speech Recognition<br/>ko-KR"]
+        useTTS["useTTS hook<br/>engine-agnostic<br/>silent failover<br/>cancel-then-speak"]
 
-        LS["localStorage<br/>• persona<br/>• settings"]
-        IDB["IndexedDB<br/>• conversation log<br/>• memory events"]
+        EL["elevenLabsProvider<br/>fetch /api/tts<br/>play HTMLAudioElement"]
+        WS["webSpeechProvider<br/>SpeechSynthesis<br/>ko-KR voice picker<br/>(male → Siri → Yuna)"]
+
+        LS["localStorage<br/>• UI language<br/>• voice engine pref<br/>• current emotion<br/>• emergency message"]
+        IDB["IndexedDB<br/>audio Blob cache<br/>(voiceVersion|emotion|text)"]
     end
 
-    subgraph Cloud["Vercel"]
-        API["/api/suggest<br/>Serverless Function"]
-        Anthropic["Claude API<br/>claude-sonnet-4-5"]
+    subgraph Vercel["Vercel Edge"]
+        API["/api/tts<br/>POST text+emotion+lang<br/>→ audio/mpeg stream<br/>(API key server-only)"]
     end
 
-    subgraph Audio["출력"]
-        Speaker["iPad 스피커<br/>— 합성된 한국어 음성"]
+    subgraph EL11["ElevenLabs"]
+        TTS_API["Text-to-Speech API<br/>model: eleven_turbo_v2_5<br/>voice: designed Korean male<br/>language_code: ko"]
+    end
+
+    subgraph Audio["Output"]
+        Speaker["iPad speaker<br/>designed Korean voice"]
     end
 
     Tap --> QP
-    Tap --> ED
-    Tap --> SS
+    Tap --> EP
     Tap --> EB
-    Hand --> HP
-    Voice --> STT
-    Type --> FT
+    Tap --> SP
 
-    QP --> TTS
-    SS --> TTS
-    FT --> TTS
-    HP --> TTS
-    EB --> TTS
+    QP --> useTTS
+    EB --> useTTS
+    SP -. preview .-> useTTS
 
-    ED -.감정 상태.-> TTS
-    ED -.감정 tag.-> API
+    EP -. emotion .-> useTTS
+    SP -. engine pref .-> useTTS
+    SP -. UI lang .-> useTTS
 
-    STT --> API
-    PO --> LS
-    LS -.페르소나 주입.-> API
-    IDB -.최근 맥락.-> API
+    useTTS --> EL
+    useTTS -. fallback on failure .-> WS
 
-    API --> Anthropic
-    Anthropic --> API
-    API --> SS
+    EL -- cache hit --> IDB
+    EL -- cache miss --> API
+    API --> TTS_API
+    TTS_API -- audio/mpeg --> API
+    API --> EL
+    EL -- write blob --> IDB
 
-    TTS --> Speaker
+    EL --> Speaker
+    WS --> Speaker
 
-    SS --> IDB
-    FT --> IDB
-    HP --> IDB
-    QP --> IDB
+    EB -. while active .-> EBan
+
+    SP <--> LS
+    EP <--> LS
+
+    classDef shipped fill:#E8F5E9,stroke:#2E7D32,color:#1A1A1A
+    classDef external fill:#FFF3E0,stroke:#EF6C00,color:#1A1A1A
+    classDef storage fill:#E3F2FD,stroke:#1565C0,color:#1A1A1A
+    classDef emergency fill:#FFEBEE,stroke:#B71C1C,color:#1A1A1A
+
+    class QP,EP,SP,useTTS,EL,WS shipped
+    class EB,EBan emergency
+    class API,TTS_API external
+    class LS,IDB storage
