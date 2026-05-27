@@ -1,44 +1,42 @@
 # Platform Rationale — Talk Again
 
-> ⚠️ 이 초안은 우리가 함께 내린 기술 결정을 정리한 것. **모든 줄을 네 지식과 대조해 검토**하고, 사람 관련 진술(할아버지의 일상 등)이 사실과 맞는지 확인할 것. 마지막에 너 말투로 한두 줄 손보면 더 좋다.
+## Conclusion
 
-## 결론
+Talk Again is a Progressive Web App (PWA), designed to be installed on an iPad (10th generation) at the grandfather's home.
 
-Talk Again은 iPad(10세대) 위에서 동작하는 PWA(Progressive Web App)로 만들었다.
+## Why iPad
 
-## 왜 iPad인가
+The grandfather spends most of his time at home — walking, watching TV, talking with his wife. He rarely does mobility-heavy activities like outdoor yard work. For this person, **screen size and legibility matter more than portability**.
 
-할아버지는 주로 집에서 시간을 보내신다 — 산책, TV 시청, 할머니와의 대화. 마당일처럼 이동이 많은 활동은 거의 하지 않으신다. 그래서 이 도구는 휴대성보다 **화면 크기와 가독성**이 더 중요하다.
+Elderly UX research directly supports this choice. Older users with hand tremor achieve higher input speed and accuracy on tablets than on smartphones, because the keys are larger. A large screen makes big buttons, large type, and generous spacing possible — all of which compensate for reduced vision and unsteady hands at the same time.
 
-노년층 UX 연구는 이 결정을 직접 뒷받침한다. 손 떨림이 있는 노년 사용자는 스마트폰보다 태블릿에서 입력 속도와 정확도가 더 높다 — 버튼(키)이 크기 때문이다. 큰 화면은 큰 버튼·큰 글자·넓은 간격을 가능하게 하고, 이는 시력 저하와 손 떨림에 동시에 대응한다.
+The iPad also supports the Apple Pencil. The grandfather currently communicates by writing on paper. An iPad with an Apple Pencil can carry that familiar habit into the digital tool — handwritten input is recognized and spoken aloud — rather than asking him to abandon what already works for him.
 
-iPad는 Apple Pencil을 지원한다. 할아버지는 지금 종이에 글을 써서 대화하신다. iPad + Apple Pencil은 그 익숙한 습관을 버리지 않고 디지털로 이어갈 수 있게 한다 — 손으로 쓴 글씨를 그대로 인식해 음성으로 출력한다.
+## Rejected alternatives
 
-## 탈락한 후보
+- **Smartphone**: Screen is too small for elderly legibility and touch accuracy. Big-button, big-type design becomes impossible.
+- **Laptop / PC**: Depends on keyboard input. The grandfather is not a typist, and a laptop is awkward to use naturally on a couch or at the dinner table.
+- **Paper card system (non-digital)**: Cannot offer context-aware suggested replies or speech output. It reproduces the exact limitation he already has with paper.
+- **Voice-assistant device (smart speaker)**: Depends on the user being able to speak. The grandfather cannot.
 
-- **스마트폰**: 화면이 작아 노년층 가독성·터치 정확도가 떨어진다. 큰 버튼·큰 글자 디자인이 불가능하다.
-- **노트북/PC**: 키보드 입력에 의존한다. 할아버지는 타자가 익숙하지 않고, 거실·식탁에서 자연스럽게 쓰기 어렵다.
-- **종이 카드 시스템(비-디지털)**: 맥락에 맞는 답변 추천이나 음성 출력이 불가능하다 — 현재 종이 방식의 한계를 그대로 답습한다.
-- **음성 비서 디바이스(스마트 스피커 등)**: 음성 입력에 의존하는데 할아버지는 발화가 불가능하다.
+## Why a PWA, not a native app
 
-## 왜 네이티브 앱이 아니라 PWA인가
+- Buildable and shippable within the 9-day class deadline.
+- A single live URL — family members can reach the same app from anywhere to help configure or debug it.
+- "Add to Home Screen" on iPad Safari runs it full-screen, indistinguishable from a native app to the user.
+- The Web Speech API gives Korean speech synthesis and recognition without any extra install.
+- Clean migration path: in Production v2 we can move to a native iOS shell and/or a local LLM without throwing away the design system or the UX logic.
 
-- 클래스 마감(9일) 안에 빌드·배포가 가능하다.
-- 라이브 URL 하나로 배포 → 가족이 같은 링크로 어디서나 접속·지원할 수 있다.
-- iPad Safari에서 홈 화면에 추가하면 네이티브 앱처럼 전체화면으로 작동한다.
-- Web Speech API로 한국어 음성 합성·인식을 추가 설치 없이 바로 쓸 수 있다.
-- Production v2에서 네이티브 iOS·로컬 LLM으로 확장할 때 마이그레이션 경로가 명확하다.
+## Limits and what comes next
 
-## 한계와 향후
+- The current build uses cloud APIs (ElevenLabs for voice, Claude for AI-suggested replies in a later step). Both depend on internet — a real limit in a rural Korean home.
+- Production v2: integrate a local LLM so the app works fully offline. If iPad alone cannot host it, consider a small in-home server (e.g. a Raspberry Pi running Ollama) co-located with the iPad.
+- Voice: the iOS Web Speech API offers very limited choice over voices. As a stand-in for the system fallback, the app relies on whatever Korean voice the iPad has installed; the elder-male persona is delivered by ElevenLabs Voice Design (a designed synthetic voice, not a clone of the grandfather's own voice — see Design Argument §6 and Records of Resistance #1).
 
-- 현재 버전은 AI 답변 생성에 클라우드(Claude API)를 사용하므로 인터넷이 필요하다. 시골 환경을 고려하면 한계다.
-- Production v2: 로컬 LLM 통합으로 완전 오프라인 동작. iPad만으로 어려우면 가정 내 소형 로컬 서버(예: 라즈베리파이 + Ollama) 검토.
-- 음성: iOS Web Speech API는 음성 선택권이 제한적이라 한국어 고령 남성 시스템 음성에 의존한다.
+## In one line
 
-## 한 줄
-
-이 도구가 iPad 위에 사는 이유는 React가 익숙해서가 아니라, 할아버지가 집에서, 큰 화면으로, 떨리는 손으로, 익숙한 손글씨와 함께 쓰셔야 하기 때문이다.
+This tool lives on an iPad not because React is convenient, but because the grandfather needs to use it at home, on a large screen, with shaky hands, alongside the handwriting habit he already trusts.
 
 ---
 
-*근거 출처: W3C WAI Older Users, Nielsen Norman Group UX for Seniors, Designing for older adults: review of touchscreen design guidelines (arXiv 2017), Touch Screen User Interfaces for Older Adults: Button Size and Spacing (Springer). 상세는 `ELDERLY_UX_RESEARCH.md` 참고.*
+*Sources: W3C WAI — Older Users; Nielsen Norman Group — UX for Seniors; "Designing for older adults: Review of touchscreen design guidelines" (arXiv 2017); "Touch Screen User Interfaces for Older Adults: Button Size and Spacing" (Springer). Further detail in `ELDERLY_UX_RESEARCH.md`.*
