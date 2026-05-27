@@ -1,7 +1,5 @@
 # Records of Resistance — Talk Again
 
-> **Note to self (delete before submission if you want):** this draft was written by Claude Code based on our actual conversation and the AI Direction Log. The decisions and quotes are real — they came from me. Read through, rewrite in my own voice where the phrasing feels off, add anything missing, and remove this note. — Chanhwi
-
 Six places where I refused what AI proposed (or what the default behavior would have produced) and chose something else instead. Each entry: what AI gave / defaulted to, what I chose, and why. Cross-references to `AI_Direction_Log.md` are included so a grader can verify the timing.
 
 ---

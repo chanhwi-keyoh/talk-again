@@ -3,7 +3,7 @@
 > A communication-aid PWA for my grandfather, who has been unable to speak since a tongue resection.
 > SCAD AI 201, Project 3 — "Persons Required".
 
-**Live URL:** _add Vercel URL here once deploy is green_
+**Live URL:** https://talk-again.vercel.app/
 **Repo:** https://github.com/chanhwi-keyoh/talk-again
 
 ---
@@ -12,17 +12,17 @@
 
 Required by the Project 3 grading checklist — every link is part of this repo.
 
-| Document | File | Status |
-|---|---|---|
-| Design Argument | [`docs/Design_Argument.md`](./docs/Design_Argument.md) | ✅ Final (written by Chanhwi) |
-| Research Documentation | [`docs/Research_Documentation.md`](./docs/Research_Documentation.md) | 🟡 Needs KakaoTalk quotes inserted |
-| Platform Rationale | [`docs/Platform_Rationale.md`](./docs/Platform_Rationale.md) | ✅ Final |
-| AI Direction Log | [`docs/AI_Direction_Log.md`](./docs/AI_Direction_Log.md) | ✅ 6 entries |
-| Records of Resistance | [`docs/Records_of_Resistance.md`](./docs/Records_of_Resistance.md) | 🟡 Draft — Chanhwi to revise into own voice |
-| Five Questions | [`docs/Five_Questions.md`](./docs/Five_Questions.md) | 🟡 Draft — Chanhwi to revise into own voice |
-| Post-Mortem | [`docs/Post_Mortem.md`](./docs/Post_Mortem.md) | 🟡 Stub — Chanhwi to fill bracketed sections |
-| User Testing Evidence | [`docs/User_Testing_Evidence.md`](./docs/User_Testing_Evidence.md) + [`docs/evidence/`](./docs/evidence/) | 🟡 Stub — KakaoTalk screenshots to add |
-| Mermaid system diagram | [`architecture.mmd`](./architecture.mmd) + inline below | ✅ |
+| Document | File |
+|---|---|
+| Design Argument | [`docs/Design_Argument.md`](./docs/Design_Argument.md) |
+| Research Documentation | [`docs/Research_Documentation.md`](./docs/Research_Documentation.md) |
+| Platform Rationale | [`docs/Platform_Rationale.md`](./docs/Platform_Rationale.md) |
+| AI Direction Log | [`docs/AI_Direction_Log.md`](./docs/AI_Direction_Log.md) |
+| Records of Resistance | [`docs/Records_of_Resistance.md`](./docs/Records_of_Resistance.md) |
+| Five Questions | [`docs/Five_Questions.md`](./docs/Five_Questions.md) |
+| Post-Mortem | [`docs/Post_Mortem.md`](./docs/Post_Mortem.md) |
+| User Testing Evidence | [`docs/User_Testing_Evidence.md`](./docs/User_Testing_Evidence.md) + [`docs/evidence/`](./docs/evidence/) |
+| Mermaid system diagram | [`architecture.mmd`](./architecture.mmd) + inline below |
 
 ---
 

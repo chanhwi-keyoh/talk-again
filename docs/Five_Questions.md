@@ -1,7 +1,5 @@
 # Five Questions — Talk Again
 
-> **Note to self (delete before submission if you want):** drafted from our actual sessions in Claude Code. Read through, rewrite in my own voice where needed, and remove this note. — Chanhwi
-
 A reflection on how I used AI on this project — what I asked it to build, what I kept, what I rejected, and what I learned about my own role.
 
 ---

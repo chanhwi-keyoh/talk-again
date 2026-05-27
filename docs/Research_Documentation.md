@@ -1,6 +1,6 @@
 # Research Documentation — Talk Again
 
-> ⚠️ **Mostly done, light editing needed.** This document collects the specific research that grounds the design — both interview / family observations of my grandfather, and the elderly-UX literature that shaped the UI numbers. Chanhwi to add KakaoTalk quotes and confirm sources.
+This document collects the specific research that grounds the design — both interview / family observations of my grandfather, and the elderly-UX literature that shaped the UI numbers.
 
 ---
 
@@ -12,18 +12,16 @@
 
 ### What I learned
 
-> Add KakaoTalk screenshots in `docs/evidence/` and reference them here. Direct quotes (in Korean is fine — translate the key one or two lines).
-
 - **Daily routine:** mostly at home — walking, watching TV, conversation with grandmother. No yard work anymore. (Source: mom)
 - **Workaround in use:** writes Korean on paper, hands the paper over. Conversations "never really land" because the other person has to wait. He ends up not having most conversations at all. (Source: grandfather, relayed via mom — in Design Argument §2)
 - **Family worry:** grandmother and grandfather live alone together in rural Korea. If something happens to grandmother, grandfather cannot call for help and explain the situation or the address. (Source: mom — direct quote in Design Argument §2)
 - **Pre-surgery personality:** prickly, talkative, loved to sing more than anything. He cannot sing now. (Source: mom)
 - **Surgical history:** late-diagnosed tongue cancer ~7 years ago, full tongue resection. No clean recordings of his pre-surgery voice exist; the family searched. Post-surgery audio is humming "도레미" only — not speech phonetics.
 
-> Specific KakaoTalk quotes (insert):
->
-> - `evidence/katalk_mom_2026-MM-DD_X.png` — quote about [topic]
-> - `evidence/katalk_grandma_2026-MM-DD_X.png` — quote about [topic]
+### Primary artifacts
+
+- [`evidence/Messages.JPG`](./evidence/Messages.JPG) — KakaoTalk thread with my mother about my grandfather's daily life and the communication workaround he currently uses.
+- [`evidence/Video call.png`](./evidence/Video%20call.png) — video call with family — context for the in-home environment and how my grandparents communicate today.
 
 ---
 

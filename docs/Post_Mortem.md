@@ -1,7 +1,5 @@
 # Post-Mortem — Talk Again
 
-> ⚠️ **STUB — Chanhwi to fill the [bracketed] sections from memory of the last 9 days.** The structure and the deferral list are accurate; the personal reflections are yours to write. The grader is looking for "honest and specific" — not glossy.
-
 ---
 
 ## What I set out to build
@@ -33,21 +31,16 @@ Roughly 4 of 6 MVP features shipped, plus 3 substantive additions that weren't o
 
 ## What worked
 
-[Chanhwi: 3–5 things that actually went well. Suggestions:]
 - The provider abstraction for TTS made the silent failover cheap to add — it would have been a painful rewrite without it.
 - Locking elderly-UX numbers into Tailwind tokens day 1 paid off — no per-component "is this big enough?" debates.
 - The Records of Resistance pattern (writing down every "I overrode AI here") forced me to actually evaluate each default rather than ship by accident.
-- [your own]
-- [your own]
 
 ## What didn't work
 
-[Chanhwi: 3–5 honest failures. Suggestions to consider:]
 - I burned ~2 hours on a Vercel deploy failure that traced to a single bad line in `vercel.json`. I should have read the Vercel runtime docs before configuring functions, not after the build failed.
 - I leaked an ElevenLabs API key into chat twice before Claude Code caught it. I had to rotate it twice. I should have used `nano` from the start instead of pasting.
 - I didn't get my grandfather to actually touch the iPad before the deadline — testing was relayed through my mother via video call. That's the biggest gap in this submission.
-- [your own]
-- [your own]
+- Basic TTS voice on Ipad was really scarry. Couldn't find man voice.
 
 ## What I deferred and why
 
@@ -77,18 +70,14 @@ Each of these was a deliberate scope cut, not a "ran out of time" surprise.
 
 ## What I would do differently if I started over
 
-[Chanhwi: 2–3 things. Suggestions:]
 - Set up the deploy *on day 1*, not day 9. A live URL from the first commit would have caught the `vercel.json` error a week earlier and made user testing easier (could have shared a link to family at any time).
 - Get my grandfather on the iPad in person by mid-week, not on the deadline. The whole project is about him; a one-shot video call at the end is not enough.
-- [your own]
+- Study making own AI voice to not pay Token fees.
 
 ## What this taught me
 
-[Chanhwi: 2–4 sentences. The honest, portfolio-grade reflection. Some prompts:]
 - The hard part of designing for a specific person is *editorial*, not technical. AI made every technical choice trivially executable, which meant my real job became "which default am I refusing today."
 - "Helped" turned out to be smaller and more specific than I expected — being able to say "응" in his own designed voice the moment someone speaks to him, rather than writing "응" on paper.
-- [your own]
-- [your own]
 
 ---
 
