@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* -----------------------------------------------------------------------------
+ * Talk Again — global base styles
+ *
+ * Designed for an elder with low touch precision and aging eyes. Every default
+ * here is set to "safe at a glance": large type, generous line-height, calm
+ * background, no thin font weights, no surprise motion.
+ * ---------------------------------------------------------------------------*/
+
+:root {
+  color-scheme: light;
+  /* Disable iOS Safari's auto-resize of text in landscape rotation. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: theme("colors.canvas");
+  color: theme("colors.ink");
+  font-family: theme("fontFamily.sans");
+  font-size: 24px; /* Body ≥ 24px per elderly UX research. */
+  line-height: 1.6;
+  font-weight: 500; /* No thin weights, ever. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Prevent rubber-band scroll bouncing on iPad PWA. */
+  overscroll-behavior: none;
+}
+
+/* Disable text selection on tap-only surfaces so a long press doesn't surface
+   iOS's text-selection magnifier on a button. Forms still allow selection. */
+button,
+[role="button"] {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation; /* Removes the iOS 300ms tap delay. */
+}
+
+input,
+textarea {
+  font: inherit;
+}
+
+/* Visible focus rings. Never rely on color alone — also add a thick outline. */
+:focus-visible {
+  outline: 4px solid theme("colors.ink");
+  outline-offset: 4px;
+}
+
+/* Honor reduced-motion preference — no decorative animation for users who set it. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

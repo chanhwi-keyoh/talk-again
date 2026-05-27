@@ -1,0 +1,68 @@
+%% Talk Again — System Architecture
+%% Render with: https://mermaid.live
+
+flowchart TB
+    subgraph User["사용자 (외할아버지)"]
+        Tap["탭 입력"]
+        Hand["손글씨 (Apple Pencil)"]
+        Voice["주변 대화 음성"]
+        Type["키보드 입력 (마지막 수단)"]
+    end
+
+    subgraph iPad["iPad 10th gen — Safari PWA"]
+        QP["Quick Phrase Panel<br/>(10개 즉시 발화 버튼)"]
+        ED["Emotion Dial<br/>(6가지 감정)"]
+        SS["Suggestion Stack<br/>(AI 답변 3개)"]
+        FT["Free Text Input"]
+        HP["Handwriting Pad<br/>(stretch)"]
+        EB["Emergency Button"]
+        PO["Persona Onboarding<br/>(첫 실행)"]
+
+        TTS["useTTS Hook<br/>Web Speech Synthesis<br/>ko-KR elder male<br/>+ prosody 변조"]
+        STT["useSTT Hook<br/>Web Speech Recognition<br/>ko-KR"]
+
+        LS["localStorage<br/>• persona<br/>• settings"]
+        IDB["IndexedDB<br/>• conversation log<br/>• memory events"]
+    end
+
+    subgraph Cloud["Vercel"]
+        API["/api/suggest<br/>Serverless Function"]
+        Anthropic["Claude API<br/>claude-sonnet-4-5"]
+    end
+
+    subgraph Audio["출력"]
+        Speaker["iPad 스피커<br/>— 합성된 한국어 음성"]
+    end
+
+    Tap --> QP
+    Tap --> ED
+    Tap --> SS
+    Tap --> EB
+    Hand --> HP
+    Voice --> STT
+    Type --> FT
+
+    QP --> TTS
+    SS --> TTS
+    FT --> TTS
+    HP --> TTS
+    EB --> TTS
+
+    ED -.감정 상태.-> TTS
+    ED -.감정 tag.-> API
+
+    STT --> API
+    PO --> LS
+    LS -.페르소나 주입.-> API
+    IDB -.최근 맥락.-> API
+
+    API --> Anthropic
+    Anthropic --> API
+    API --> SS
+
+    TTS --> Speaker
+
+    SS --> IDB
+    FT --> IDB
+    HP --> IDB
+    QP --> IDB
