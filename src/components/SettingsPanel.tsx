@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useI18n } from "@/lib/i18n";
+import { usePersona } from "@/lib/persona";
 import { useVoicePref } from "@/lib/voicePref";
 import { EmergencySettings } from "@/components/EmergencySettings";
 import { VoiceDiagnostic } from "@/components/VoiceDiagnostic";
@@ -8,6 +9,8 @@ import type { UILang, VoiceEngine } from "@/types";
 interface SettingsPanelProps {
   open: boolean;
   onClose: () => void;
+  /** Caller wires this to re-open PersonaOnboarding. */
+  onReenterPersona: () => void;
 }
 
 /* -----------------------------------------------------------------------------
@@ -16,10 +19,15 @@ interface SettingsPanelProps {
  * Full-screen overlay (not a tiny corner dropdown) because elderly users do
  * better with one-task-per-screen and clear, large affordances.
  *
- * Language is the only setting in Step 1. More toggles (theme, prosody depth,
- * onboarding reset) will land here in later steps without changing the shell.
+ * Each section is its own labelled <section>, separated by `mt-14`, so adding
+ * new sections (persona, emergency, voice diagnostic, ...) doesn't require
+ * shell rewrites.
  * ---------------------------------------------------------------------------*/
-export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
+export function SettingsPanel({
+  open,
+  onClose,
+  onReenterPersona,
+}: SettingsPanelProps) {
   const { lang, setLang, t } = useI18n();
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -90,6 +98,8 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
         <VoiceSection />
 
         <VoiceDiagnostic />
+
+        <PersonaSection onReenter={onReenterPersona} onCloseSettings={onClose} />
 
         <EmergencySettings />
       </main>
@@ -215,5 +225,60 @@ function VoiceChoice({
         </span>
       </span>
     </button>
+  );
+}
+
+/** Persona section — lets the user re-run the 10-question onboarding or
+ *  clear the stored persona entirely. The persona itself is not shown as a
+ *  list: it's input material for AI Suggestions, not a profile page. */
+function PersonaSection({
+  onReenter,
+  onCloseSettings,
+}: {
+  onReenter: () => void;
+  onCloseSettings: () => void;
+}) {
+  const { t } = useI18n();
+  const { hasBeenSet, reset } = usePersona();
+
+  return (
+    <section aria-labelledby="persona-heading" className="mt-14 max-w-3xl">
+      <h3 id="persona-heading" className="mb-4 text-label-lg text-ink">
+        {t("settings.persona")}
+      </h3>
+      <p className="mb-gap-sm whitespace-pre-line text-body text-muted">
+        {t("settings.persona.help")}
+      </p>
+
+      <div className="flex flex-wrap gap-gap-sm">
+        <button
+          type="button"
+          onClick={() => {
+            onCloseSettings();
+            onReenter();
+          }}
+          className="flex min-h-[80px] items-center gap-3 rounded-tile border-2 border-ink bg-soft px-8 py-4 text-label text-ink shadow-tile active:shadow-tile-pressed"
+        >
+          <span aria-hidden className="text-[36px] leading-none">
+            ↻
+          </span>
+          <span>{t("settings.persona.reenter")}</span>
+        </button>
+        {hasBeenSet && (
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm(t("settings.persona.clearConfirm"))) reset();
+            }}
+            className="flex min-h-[80px] items-center gap-3 rounded-tile border-2 border-border bg-canvas px-8 py-4 text-label text-muted shadow-tile active:shadow-tile-pressed"
+          >
+            <span aria-hidden className="text-[36px] leading-none">
+              ✕
+            </span>
+            <span>{t("settings.persona.clear")}</span>
+          </button>
+        )}
+      </div>
+    </section>
   );
 }

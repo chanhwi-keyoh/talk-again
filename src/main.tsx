@@ -4,6 +4,7 @@ import App from "./App";
 import { EmergencyProvider } from "./components/EmergencyProvider";
 import { EmotionProvider } from "./components/EmotionProvider";
 import { I18nProvider } from "./components/I18nProvider";
+import { PersonaProvider } from "./components/PersonaProvider";
 import { VoicePrefProvider } from "./components/VoicePrefProvider";
 import "./styles/globals.css";
 
@@ -17,9 +18,11 @@ createRoot(container).render(
     <I18nProvider>
       <VoicePrefProvider>
         <EmotionProvider>
-          <EmergencyProvider>
-            <App />
-          </EmergencyProvider>
+          <PersonaProvider>
+            <EmergencyProvider>
+              <App />
+            </EmergencyProvider>
+          </PersonaProvider>
         </EmotionProvider>
       </VoicePrefProvider>
     </I18nProvider>

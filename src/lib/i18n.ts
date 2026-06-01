@@ -60,6 +60,60 @@ export const messages = {
     "emergency.aria":
       "응급 상황 도움 요청. 누르면 큰 소리로 도움 요청 문구를 멈출 때까지 계속 반복해요. 다시 누르면 멈춰요.",
     "emergency.banner.heading": "지금 도움이 필요해요",
+    "tab.quick": "자주 쓰는 말",
+    "tab.conversation": "대화하기",
+    "portrait.hint": "가로로 돌리면 더 편해요 📱↻",
+    "portrait.dismiss": "닫기",
+    "persona.intro.title": "할아버지에 대해 알려 주세요",
+    "persona.intro.body":
+      "더 자연스러운 답변을 만들어 드리려고 몇 가지 여쭙는 거예요. 어려운 항목은 건너뛰셔도 돼요. 가족이 같이 답하셔도 좋아요.",
+    "persona.intro.start": "시작하기",
+    "persona.intro.skipAll": "지금 안 함",
+    "persona.skip": "건너뛰기",
+    "persona.next": "다음",
+    "persona.back": "이전",
+    "persona.finish": "다 됐어요",
+    "persona.progress": "{current} / {total}",
+    "persona.question.name": "성함이 어떻게 되세요?",
+    "persona.question.age": "올해 나이는 어떻게 되세요?",
+    "persona.question.closestFamily": "가족 중 가장 자주 대화하는 분은 누구신가요?",
+    "persona.question.familyTerms":
+      "평소에 어떤 호칭으로 가족을 부르세요? (예: 손주는 “우리 강아지”, 아내는 “여보”)",
+    "persona.question.favoriteFoods": "좋아하시는 음식 3가지는 무엇인가요?",
+    "persona.question.frequentPlaces":
+      "평소 자주 가시는 곳은 어디인가요? (집 안 어디, 동네 어디)",
+    "persona.question.replyLength":
+      "답변할 때 짧게 vs 자세히 어느 쪽을 더 선호하세요?",
+    "persona.question.jokes": "농담을 좋아하세요?",
+    "persona.question.commonQuestions":
+      "자주 듣는 질문 3가지는 무엇인가요?",
+    "persona.question.desiredImpression":
+      "어떤 분위기의 사람으로 보이고 싶으세요? (예: 자상한 / 단단한 / 다정한 / 유머있는)",
+    "settings.persona": "할아버지 정보",
+    "settings.persona.help":
+      "AI 답변이 더 자연스러워지도록 알려 주신 정보예요. 다시 입력하거나 지울 수 있어요.",
+    "settings.persona.reenter": "다시 입력",
+    "settings.persona.clear": "지우기",
+    "settings.persona.clearConfirm":
+      "정말 지울까요? 다음에 다시 입력하실 수 있어요.",
+    "conversation.title": "대화하기",
+    "conversation.hint":
+      "상대방이 한 말을 듣고 어울리는 답변 세 가지를 만들어 드려요.",
+    "conversation.listen": "듣기 시작",
+    "conversation.stopListening": "그만 듣기",
+    "conversation.requesting": "답변 만드는 중…",
+    "conversation.askAgain": "다시 답변 받기",
+    "conversation.startOver": "처음부터",
+    "conversation.transcriptLabel": "들은 말",
+    "conversation.transcriptPlaceholder":
+      "여기 ‘듣기 시작’을 누르고 상대방이 말씀하시는 걸 들어요.",
+    "conversation.suggestionsLabel": "답변 후보",
+    "conversation.sttUnsupported":
+      "이 브라우저에서는 듣기가 안 돼요. 다른 브라우저를 써 주세요.",
+    "conversation.aiUnavailable":
+      "AI 답변이 지금은 안 돼요. 잠시 뒤 다시 시도해 주세요.",
+    "conversation.noPersona":
+      "아직 할아버지 정보가 없어요. 설정에서 한번 입력해 주시면 답변이 더 자연스러워져요.",
     "settings.emergency.heading": "응급 메시지",
     "settings.emergency.help":
       "위쪽 빨간 '응급' 단추를 누르면 이 글을 큰 소리로 멈출 때까지 계속 말해요. 다시 누르면 멈춰요. 주소를 함께 적어 두면 119가 더 빨리 찾아와요.",
@@ -115,6 +169,61 @@ export const messages = {
     "emergency.aria":
       "Emergency. Tap to broadcast the help message loudly on repeat until stopped. Tap again to stop.",
     "emergency.banner.heading": "I need help right now",
+    "tab.quick": "Quick phrases",
+    "tab.conversation": "Conversation",
+    "portrait.hint": "Rotate sideways for the full experience 📱↻",
+    "portrait.dismiss": "Dismiss",
+    "persona.intro.title": "Tell us about Grandfather",
+    "persona.intro.body":
+      "A few quick questions so the AI suggestions sound like him. Skip any you'd rather not answer. Family can fill these in together.",
+    "persona.intro.start": "Start",
+    "persona.intro.skipAll": "Not now",
+    "persona.skip": "Skip",
+    "persona.next": "Next",
+    "persona.back": "Back",
+    "persona.finish": "Done",
+    "persona.progress": "{current} / {total}",
+    "persona.question.name": "What is his name?",
+    "persona.question.age": "How old is he this year?",
+    "persona.question.closestFamily":
+      "Whom in the family does he talk to most often?",
+    "persona.question.familyTerms":
+      "What does he call family members? (e.g., grandkids — “my little one”; wife — “dear”)",
+    "persona.question.favoriteFoods": "What are three foods he loves?",
+    "persona.question.frequentPlaces":
+      "Where does he most often spend his time? (parts of the house, places in the neighborhood)",
+    "persona.question.replyLength":
+      "Does he prefer short replies or longer ones?",
+    "persona.question.jokes": "Does he like jokes?",
+    "persona.question.commonQuestions":
+      "What three questions does he hear most often?",
+    "persona.question.desiredImpression":
+      "How does he like to come across? (gentle / firm / warm / playful)",
+    "settings.persona": "Grandfather profile",
+    "settings.persona.help":
+      "What you've told the AI so the suggestions sound like him. You can re-enter or clear this.",
+    "settings.persona.reenter": "Re-enter",
+    "settings.persona.clear": "Clear",
+    "settings.persona.clearConfirm":
+      "Clear it? You can enter it again later.",
+    "conversation.title": "Conversation",
+    "conversation.hint":
+      "Listen to what the other person said, then we'll suggest three replies he might want to say.",
+    "conversation.listen": "Start listening",
+    "conversation.stopListening": "Stop listening",
+    "conversation.requesting": "Thinking…",
+    "conversation.askAgain": "Try again",
+    "conversation.startOver": "Start over",
+    "conversation.transcriptLabel": "What was heard",
+    "conversation.transcriptPlaceholder":
+      "Press “Start listening” and we'll capture what the other person is saying.",
+    "conversation.suggestionsLabel": "Reply options",
+    "conversation.sttUnsupported":
+      "This browser can't listen. Please use a different one.",
+    "conversation.aiUnavailable":
+      "AI suggestions aren't available right now. Please try again in a moment.",
+    "conversation.noPersona":
+      "We don't have his profile yet. Add it in Settings so suggestions sound more like him.",
     "settings.emergency.heading": "Emergency message",
     "settings.emergency.help":
       "The red SOS button at the top will say this aloud on repeat until you tap Stop. Include your address so 119 can find you faster.",

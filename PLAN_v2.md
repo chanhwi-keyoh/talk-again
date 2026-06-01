@@ -28,9 +28,10 @@ These join the existing elderly-UX rules and override any AI default:
 - Frequency learning is *only* allowed as a separate read-only surface (e.g. a "최근 자주 쓴 말" panel that doesn't touch the main grids).
 - Reason: elderly muscle memory >> statistical optimization. If the layout shifts, he has to re-read every button every time he wants to say something, which defeats the one-tap promise.
 
-### 1.2 Phone portrait must work, but never force rotation
-- No "please rotate your device" overlays.
-- Portrait gets its own optimized layout (smaller grid, stacked controls) — not a shrink of the landscape layout.
+### 1.2 Landscape is the canonical layout
+- PWA manifest already declares `orientation: "landscape"`. When installed to home screen on Android Chrome, the app boots and stays in landscape.
+- For browser-tab / iOS use where manifest hints are ignored, portrait shows a **soft, dismissible hint** ("가로로 돌리면 더 편해요 📱↻") — never a blocking modal, never an overlay that prevents use.
+- Rationale: at-home table use is the dominant scenario. Big-button + readable-label-at-distance demands landscape. Building two equal-quality layouts would double the maintenance with no usage upside.
 
 ### 1.3 Cloud features must degrade, never block
 - Every cloud-dependent feature (AI Suggestions, ElevenLabs voice, future SMS/119/GPS) must have a working offline / failure path.
@@ -137,21 +138,22 @@ Concrete success signals when I'm sitting next to him:
 - Defaults remain editable but resettable
 - Save to `localStorage.customPhrases`
 
-### Sprint 3 — Mobile portrait layout (Day 4–5)
+### Sprint 3 — Landscape lock + portrait hint (½ day, was 1 day)
 
-**Detection**
-- `window.matchMedia("(orientation: portrait)")` + resize listener
-- New context `useOrientation()` → `'portrait' | 'landscape'`
+Scope reduced from full portrait rebuild after deciding §1.2 — landscape is canonical, portrait is degraded-but-functional.
 
-**Portrait grid**
-- Quick phrases: 3×4 (12 tiles visible) — slightly smaller tiles (~110×110 px floor instead of 160×160)
-- Emotion picker: 4×2 stacked layout
-- Header: stacked vertically (title + chip on row 1, emergency + settings on row 2)
-- Test target: similar-sized Android device to what grandfather will use
+**Manifest already declares landscape** (`vite.config.ts` PWA config). When installed as PWA on Android Chrome, the app stays landscape system-wide. Verify on a real Android device.
 
-**Landscape stays as-is**
-- Already proven on iPad/desktop
-- No regression test needed beyond a quick visual check
+**Soft portrait hint component**
+- New `PortraitHint.tsx` — appears at top of screen only when `window.matchMedia("(orientation: portrait)").matches`.
+- Copy: "가로로 돌리면 더 편해요 📱↻" / "Rotate sideways for the full experience"
+- Dismissible (sessionStorage so it doesn't nag on reload)
+- Never blocks UI; QuickPhrases / SOS still usable in portrait, just smaller tiles.
+
+**Narrow-landscape adjustment**
+- Android phones in landscape are ~700×360 px — narrower than iPad's 1180. Quick-phrase grid auto-flexes to 4×3 instead of 5×2 at narrow widths so tiles stay ≥ 120 px.
+
+**Saved time (½ day) → reinvested into Sprint 1 Anthropic prompt caching + Persona polish.**
 
 ### Sprint 4 — Emergency depth (Days 5–6)
 
@@ -194,13 +196,22 @@ Concrete success signals when I'm sitting next to him:
 
 ## 5. Tech additions
 
-| Capability | API / service | Cost concern |
+| Capability | API / service | Monthly cost (estimated daily use) |
 |---|---|---|
-| AI Suggestions | Anthropic Claude `claude-sonnet-4-5` | Cheap at our usage; budget cap in serverless function |
-| STT | Web Speech Recognition (browser, free) | None |
-| SMS to Korea | Solapi or NCP SENS | ~₩10/메시지 — negligible |
-| Reverse geocoding | Kakao Maps API | Free tier sufficient |
-| ElevenLabs | already in place | already paid |
+| AI Suggestions | Anthropic Claude `claude-sonnet-4-5` with **prompt caching** on persona | ~$2 (20 calls/day) – ~$5 (50 calls/day) |
+| STT | Web Speech Recognition (browser) | $0 |
+| SMS to Korea | Solapi or NCP SENS | ~₩100/year (emergency-only) |
+| Reverse geocoding | Kakao Maps API | $0 (free tier) |
+| ElevenLabs | already provisioned | $5 (already paying) |
+| Vercel hosting | personal use | $0 (free tier) |
+| **Total** | | **~$7-10/month for active daily use** |
+
+### Cost-control measures (built into v2 from day 1)
+1. **Anthropic prompt caching** on the persona system prompt — ~40% savings on cached input. `cache_control: { type: "ephemeral" }` flag in API call.
+2. **Hard input cap** — `transcript ≤ 500 chars` (same pattern as `/api/tts`).
+3. **Output cap** — `max_tokens: 300` so a hallucinating model can't run away.
+4. **Anthropic dashboard budget alert** — set on user side, $10/month → email.
+5. **Vercel function timeout** — 10 s cap, prevents stuck calls.
 
 New env vars:
 ```
@@ -224,6 +235,7 @@ All server-only, no `VITE_` prefix (per existing convention).
 | Battery API removed from iOS Safari | Indicator gracefully shows only connection on iOS; battery shown when API present (Android Chrome, desktop) |
 | Geolocation permission denied or imprecise indoors | Document workaround: manual address in emergency message is still the primary signal — GPS is enrichment |
 | 7-day timeline is tight for 9 sprints of work | Hard-prioritize Sprints 1 + 4 (AI Suggestions + Emergency depth). Cut Sprint 5 (offline + battery) to "minimum viable" if pinched |
+| Anthropic API cost overrun (e.g. someone discovers public URL and hammers `/api/suggest`) | Cost-control measures in §5. Anthropic dashboard alerting. If costs spike, add IP-keyed rate limit via Upstash Redis (free tier) in v2.1 |
 
 ---
 

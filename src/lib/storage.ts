@@ -25,4 +25,6 @@ export const STORAGE_KEYS = {
   emotion: "talkagain.emotion",
   voiceEngine: "talkagain.voiceEngine",
   emergencyMessage: "talkagain.emergencyMessage",
+  persona: "talkagain.persona",
+  portraitHintDismissed: "talkagain.portraitHintDismissed",
 } as const;
