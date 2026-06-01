@@ -98,16 +98,22 @@ export const messages = {
       "정말 지울까요? 다음에 다시 입력하실 수 있어요.",
     "conversation.title": "대화하기",
     "conversation.hint":
-      "상대방이 한 말을 듣고 어울리는 답변 세 가지를 만들어 드려요.",
+      "상대가 한 말을 들으면 어울리는 답변 세 가지를 만들어 드려요.",
     "conversation.listen": "듣기 시작",
     "conversation.stopListening": "그만 듣기",
     "conversation.requesting": "답변 만드는 중…",
+    "conversation.ask": "답변 받기",
     "conversation.askAgain": "다시 답변 받기",
     "conversation.startOver": "처음부터",
-    "conversation.transcriptLabel": "들은 말",
-    "conversation.transcriptPlaceholder":
-      "여기 ‘듣기 시작’을 누르고 상대방이 말씀하시는 걸 들어요.",
-    "conversation.suggestionsLabel": "답변 후보",
+    "conversation.heardLabel": "상대가 한 말",
+    "conversation.heardHint": "잘못 들었으면 직접 고쳐도 돼요",
+    "conversation.heardPlaceholder":
+      "‘듣기 시작’을 누르고 상대가 말씀하시는 걸 들어요.",
+    "conversation.questionToggle.add": "❓ 물음표 붙이기",
+    "conversation.questionToggle.remove": "❓ 물음표 떼기",
+    "conversation.suggestionsLabel": "할아버지가 하실 말",
+    "conversation.suggestionsEmpty":
+      "여기에 답변 후보 세 가지가 보일 거예요. ‘답변 받기’를 눌러 주세요.",
     "conversation.sttUnsupported":
       "이 브라우저에서는 듣기가 안 돼요. 다른 브라우저를 써 주세요.",
     "conversation.aiUnavailable":
@@ -212,12 +218,18 @@ export const messages = {
     "conversation.listen": "Start listening",
     "conversation.stopListening": "Stop listening",
     "conversation.requesting": "Thinking…",
+    "conversation.ask": "Get replies",
     "conversation.askAgain": "Try again",
     "conversation.startOver": "Start over",
-    "conversation.transcriptLabel": "What was heard",
-    "conversation.transcriptPlaceholder":
+    "conversation.heardLabel": "What the other person said",
+    "conversation.heardHint": "You can fix it if it was misheard",
+    "conversation.heardPlaceholder":
       "Press “Start listening” and we'll capture what the other person is saying.",
-    "conversation.suggestionsLabel": "Reply options",
+    "conversation.questionToggle.add": "❓ Mark as a question",
+    "conversation.questionToggle.remove": "❓ Not a question",
+    "conversation.suggestionsLabel": "What he could say",
+    "conversation.suggestionsEmpty":
+      "Three reply options will appear here. Tap “Get replies” to start.",
     "conversation.sttUnsupported":
       "This browser can't listen. Please use a different one.",
     "conversation.aiUnavailable":

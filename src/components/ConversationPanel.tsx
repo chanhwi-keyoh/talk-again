@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { usePersona } from "@/lib/persona";
 import { useEmotion } from "@/lib/emotion";
@@ -10,27 +10,36 @@ import {
 } from "@/lib/recentContext";
 
 /* -----------------------------------------------------------------------------
- * ConversationPanel
+ * ConversationPanel — v2.1 redesign
  *
- * Two-step interaction inside the "대화하기" tab:
- *   1. Tap "듣기 시작" → STT captures what the other person said.
- *   2. Tap "답변 받기" → POST /api/suggest → 3 candidate replies appear as
- *      big tiles → tap one to speak (via useTTS) + persist the exchange to
- *      IndexedDB for the next call's context.
+ * Two visually distinct zones make the flow obvious at a glance:
  *
- * Failure paths (all silent — no modals):
- *   - STT unsupported (Firefox / desktop Safari): inline message + the
- *     transcript stays empty.
- *   - /api/suggest returns 503 (no key yet): inline "AI unavailable" message,
- *     re-runnable.
- *   - /api/suggest returns 4xx/5xx other: same retry chip.
+ *   🎤 [HEARD zone — warm tint]
+ *      editable transcript of what the other person said
+ *      + "물음표 붙이기/떼기" toggle (STT strips punctuation; "밥 먹었어"
+ *        is ambiguous between statement and question)
  *
- * No-persona case: still calls /api/suggest (the server uses a generic
- * fallback persona), but shows a soft hint that adding the persona makes
- * suggestions sound more like him.
+ *   💬 [REPLY zone — cool tint]
+ *      3 candidate replies as big tappable tiles
+ *      OR placeholder "여기에 답변이 보일 거예요" before they arrive
+ *
+ * Edit-in-place: the transcript is a real textarea, not a read-only chip.
+ * If STT mishears, the user can correct it before requesting suggestions —
+ * this avoids the cycle "STT bad → suggestions bad → re-listen → STT bad
+ * again." Same fix for the question-vs-statement ambiguity: append "?" by
+ * hand or via the toggle.
+ *
+ * Failure paths stay soft (no modals): STT unsupported, AI unavailable, or
+ * bad model output each surface a chip and let the user retry.
  * ---------------------------------------------------------------------------*/
 
-type Phase = "idle" | "listening" | "transcribed" | "requesting" | "ready" | "error";
+type Phase =
+  | "idle"
+  | "listening"
+  | "transcribed"
+  | "requesting"
+  | "ready"
+  | "error";
 
 export function ConversationPanel() {
   const { t } = useI18n();
@@ -40,12 +49,23 @@ export function ConversationPanel() {
   const stt = useSTT("ko-KR");
 
   const [phase, setPhase] = useState<Phase>("idle");
+  const [editedTranscript, setEditedTranscript] = useState("");
   const [suggestions, setSuggestions] = useState<ReadonlyArray<string>>([]);
-  const [errorKey, setErrorKey] = useState<"sttUnsupported" | "aiUnavailable" | null>(
-    null,
-  );
+  const [errorKey, setErrorKey] = useState<
+    "sttUnsupported" | "aiUnavailable" | null
+  >(null);
 
-  const transcript = (stt.final + " " + stt.interim).trim();
+  // Keep the editable transcript in sync with the live STT stream, but only
+  // until the user starts editing manually (after which we trust their input).
+  const liveTranscript = (stt.final + " " + stt.interim).trim();
+  useEffect(() => {
+    if (phase === "listening" || phase === "idle") {
+      setEditedTranscript(liveTranscript);
+    }
+  }, [liveTranscript, phase]);
+
+  const hasQuestion = editedTranscript.trim().endsWith("?");
+  const askedOnce = phase === "ready" || phase === "error";
 
   const startListening = useCallback(() => {
     if (!stt.supported) {
@@ -54,6 +74,7 @@ export function ConversationPanel() {
       return;
     }
     stt.reset();
+    setEditedTranscript("");
     setSuggestions([]);
     setErrorKey(null);
     setPhase("listening");
@@ -62,12 +83,22 @@ export function ConversationPanel() {
 
   const stopListening = useCallback(() => {
     stt.stop();
-    setPhase(stt.final.trim() ? "transcribed" : "idle");
-  }, [stt]);
+    // Stay on this transcript even after STT stops; user may want to edit.
+    setPhase(editedTranscript.trim() ? "transcribed" : "idle");
+  }, [stt, editedTranscript]);
+
+  const toggleQuestion = useCallback(() => {
+    setEditedTranscript((prev) => {
+      const trimmed = prev.trim();
+      if (!trimmed) return prev;
+      if (trimmed.endsWith("?")) return trimmed.slice(0, -1).trimEnd();
+      return `${trimmed}?`;
+    });
+  }, []);
 
   const requestSuggestions = useCallback(async () => {
-    const finalTranscript = stt.final.trim();
-    if (!finalTranscript) return;
+    const transcript = editedTranscript.trim();
+    if (!transcript) return;
     setPhase("requesting");
     setErrorKey(null);
 
@@ -77,7 +108,7 @@ export function ConversationPanel() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          transcript: finalTranscript,
+          transcript,
           persona: hasBeenSet ? persona : undefined,
           emotion,
           recentExchanges: recent.map((r) => ({
@@ -103,88 +134,123 @@ export function ConversationPanel() {
       setErrorKey("aiUnavailable");
       setPhase("error");
     }
-  }, [stt.final, persona, hasBeenSet, emotion]);
+  }, [editedTranscript, persona, hasBeenSet, emotion]);
 
   const speakSuggestion = useCallback(
     (text: string) => {
       void speak(text, { emotion, lang: "ko-KR" });
       void appendExchange({
         timestamp: Date.now(),
-        theyHeard: stt.final.trim(),
+        theyHeard: editedTranscript.trim(),
         heSaid: text,
       });
     },
-    [speak, emotion, stt.final],
+    [speak, emotion, editedTranscript],
   );
 
   const startOver = useCallback(() => {
     stt.stop();
     stt.reset();
+    setEditedTranscript("");
     setSuggestions([]);
     setErrorKey(null);
     setPhase("idle");
   }, [stt]);
 
+  const hasTranscript = editedTranscript.trim().length > 0;
+
   return (
     <section aria-labelledby="conversation-heading" className="w-full">
-      <header className="mb-gap-sm flex items-baseline justify-between px-2">
+      <header className="mb-gap flex items-baseline justify-between px-2">
         <h2 id="conversation-heading" className="text-label-lg text-ink">
           {t("conversation.title")}
         </h2>
         <p className="text-body text-muted">{t("conversation.hint")}</p>
       </header>
 
-      {/* Transcript area — always visible so the elder sees what was heard. */}
+      {/* ─── HEARD zone ─── */}
       <div
         className={[
-          "rounded-tile border-4 px-6 py-5",
+          "rounded-tile border-4 p-6",
           phase === "listening"
-            ? "border-phrase-wait bg-phrase-wait/10"
-            : "border-border bg-soft",
+            ? "border-phrase-wait bg-phrase-wait/15"
+            : "border-phrase-wait/60 bg-phrase-wait/5",
         ].join(" ")}
         aria-live="polite"
       >
-        <p className="text-body text-muted">{t("conversation.transcriptLabel")}</p>
-        <p className="mt-2 min-h-[64px] whitespace-pre-line text-body-lg text-ink">
-          {transcript || (
-            <span className="text-muted">
-              {t("conversation.transcriptPlaceholder")}
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <span className="flex items-center gap-2 text-label text-ink">
+            <span aria-hidden className="text-[36px] leading-none">
+              🎤
             </span>
-          )}
-        </p>
+            {t("conversation.heardLabel")}
+          </span>
+          <span className="text-body text-muted">
+            {t("conversation.heardHint")}
+          </span>
+        </div>
+
+        <textarea
+          value={editedTranscript}
+          onChange={(e) => setEditedTranscript(e.target.value)}
+          rows={2}
+          placeholder={t("conversation.heardPlaceholder")}
+          className="block w-full resize-y rounded-tile border-2 border-border bg-canvas px-5 py-4 text-body-lg text-ink shadow-inner focus:border-ink focus:outline-none"
+          disabled={phase === "listening"}
+        />
+
+        {hasTranscript && (
+          <div className="mt-gap-sm flex flex-wrap gap-gap-sm">
+            <button
+              type="button"
+              onClick={toggleQuestion}
+              className={[
+                "min-h-[64px] rounded-pill border-2 px-6 py-3 text-body font-bold shadow-tile active:shadow-tile-pressed",
+                hasQuestion
+                  ? "border-ink bg-ink text-canvas"
+                  : "border-border bg-canvas text-ink",
+              ].join(" ")}
+            >
+              {hasQuestion
+                ? t("conversation.questionToggle.remove")
+                : t("conversation.questionToggle.add")}
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Primary action row — depends on phase. */}
-      <div className="mt-gap-sm flex flex-wrap gap-gap-sm">
-        {phase === "idle" || phase === "transcribed" ? (
-          <BigButton tone="primary" onClick={startListening}>
-            🎤 {t("conversation.listen")}
-          </BigButton>
-        ) : null}
-
+      {/* ─── Action row ─── */}
+      <div className="mt-gap flex flex-wrap gap-gap-sm">
         {phase === "listening" ? (
           <BigButton tone="primary" onClick={stopListening}>
             ■ {t("conversation.stopListening")}
           </BigButton>
-        ) : null}
-
-        {phase === "transcribed" || phase === "ready" || phase === "error" ? (
-          <BigButton tone="secondary" onClick={requestSuggestions}>
-            ✨ {t("conversation.askAgain")}
+        ) : (
+          <BigButton tone="primary" onClick={startListening}>
+            🎤 {t("conversation.listen")}
           </BigButton>
-        ) : null}
+        )}
 
-        {phase === "requesting" ? (
+        {hasTranscript && phase !== "listening" && phase !== "requesting" && (
+          <BigButton tone="secondary" onClick={requestSuggestions}>
+            ✨{" "}
+            {askedOnce
+              ? t("conversation.askAgain")
+              : t("conversation.ask")}
+          </BigButton>
+        )}
+
+        {phase === "requesting" && (
           <BigButton tone="secondary" onClick={() => {}} disabled>
             {t("conversation.requesting")}
           </BigButton>
-        ) : null}
+        )}
 
-        {phase !== "idle" ? (
+        {phase !== "idle" && (
           <BigButton tone="tertiary" onClick={startOver}>
             ↻ {t("conversation.startOver")}
           </BigButton>
-        ) : null}
+        )}
       </div>
 
       {!hasBeenSet && (
@@ -202,20 +268,37 @@ export function ConversationPanel() {
         </p>
       )}
 
-      {suggestions.length > 0 && (
-        <div className="mt-gap">
-          <h3 className="mb-gap-sm text-label text-ink">
+      {/* ─── REPLY zone — always visible, shows placeholder until ready ─── */}
+      <div
+        className={[
+          "mt-gap rounded-tile border-4 p-6",
+          suggestions.length > 0
+            ? "border-phrase-okay/60 bg-phrase-okay/5"
+            : "border-border bg-soft/40",
+        ].join(" ")}
+      >
+        <div className="mb-gap-sm flex items-center gap-2">
+          <span aria-hidden className="text-[36px] leading-none">
+            💬
+          </span>
+          <span className="text-label text-ink">
             {t("conversation.suggestionsLabel")}
-          </h3>
-          <ul className="grid grid-cols-1 gap-gap-sm sm:grid-cols-3" role="list">
+          </span>
+        </div>
+
+        {suggestions.length > 0 ? (
+          <ul
+            className="grid grid-cols-1 gap-gap-sm sm:grid-cols-3"
+            role="list"
+          >
             {suggestions.map((s, idx) => (
-              <li key={idx} className="list-none">
+              <li key={`${idx}-${s}`} className="list-none">
                 <button
                   type="button"
                   onClick={() => speakSuggestion(s)}
-                  className="flex h-full w-full flex-col items-start gap-3 rounded-tile border-4 border-ink bg-soft px-6 py-5 text-left shadow-tile active:shadow-tile-pressed"
+                  className="flex h-full w-full flex-col items-start gap-3 rounded-tile border-4 border-phrase-okay bg-canvas px-6 py-5 text-left shadow-tile active:shadow-tile-pressed"
                 >
-                  <span className="text-[40px] font-bold leading-none text-ink">
+                  <span className="text-[40px] font-bold leading-none text-phrase-okay">
                     {idx + 1}
                   </span>
                   <span className="text-body-lg text-ink">{s}</span>
@@ -223,8 +306,12 @@ export function ConversationPanel() {
               </li>
             ))}
           </ul>
-        </div>
-      )}
+        ) : (
+          <p className="py-2 text-body text-muted">
+            {t("conversation.suggestionsEmpty")}
+          </p>
+        )}
+      </div>
     </section>
   );
 }

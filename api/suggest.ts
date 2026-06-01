@@ -129,6 +129,30 @@ function buildUserMessage(
   }
   lines.push("The other person just said:");
   lines.push(`"${transcript}"`);
+
+  // STT-punctuation disambiguation. Korean speech-to-text rarely emits "?"
+  // even for clear questions, so a transcript like "밥 먹었어" can mean
+  // either "I ate" (statement) or "Did you eat?" (question). We tell the
+  // model how to handle each case explicitly.
+  const trimmed = transcript.trim();
+  const looksLikeQuestion = /[?？]\s*$/.test(trimmed);
+  const looksLikeStatement = /[.!。．！]\s*$/.test(trimmed);
+
+  lines.push("");
+  if (looksLikeQuestion) {
+    lines.push(
+      "Punctuation note: this ends with '?', so treat it as a QUESTION. All three replies should answer it.",
+    );
+  } else if (looksLikeStatement) {
+    lines.push(
+      "Punctuation note: this ends with terminal punctuation, so treat it as a STATEMENT from the other person. Replies should react to it.",
+    );
+  } else {
+    lines.push(
+      "Punctuation note: speech-to-text dropped any final punctuation. This sentence may be EITHER a statement or a question (e.g. \"밥 먹었어\" could mean \"I ate\" OR \"Did you eat?\"). Make the three replies cover the most plausible interpretations — at least one assuming question, at least one assuming statement. Pick the third based on which reading feels more likely given the recent conversation context above.",
+    );
+  }
+
   lines.push("");
   lines.push("Suggest three replies in the JSON shape described.");
   return lines.join("\n");
