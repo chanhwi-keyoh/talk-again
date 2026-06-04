@@ -305,3 +305,23 @@
 **Verification**
 - `npm run build` ✓
 - Preview @ 844×390 (landscape phone), DOM-measured: no scroll on either tab (`scrollHeight 390 === clientHeight 390`); transcript field 56–60 px with a transcript present; reply pane label/placeholder no longer overlap.
+
+---
+
+## Entry 8 — 2026-06-04 · Home-Screen App Icon (Hangul 말 Speech Bubble)
+
+**Request** (user)
+- "앱 추가했을때 나올 아이콘도 해줘" — give the PWA a proper home-screen icon.
+
+**What Claude Code shipped**
+- `icon.svg` (new, repo root) — the single source of truth: a cream (`#F5F3EF`, the app background) full-bleed square with an ink (`#1A1A1A`) speech bubble holding the hangul **말** ("speech"). Regeneration commands are embedded in the SVG comment.
+- Regenerated `public/icon-512.png`, `public/icon-192.png`, `public/apple-touch-icon.png` (180), and a multi-size `public/favicon.ico` (48/32/16) via `rsvg-convert` + ImageMagick.
+- No manifest/HTML changes needed — `vite.config.ts` already lists `icon-192/512` (`purpose: "any maskable"`) and `index.html` already links the apple-touch-icon + favicon.
+
+**Design decisions**
+- **말 bubble over the old abstract clover** — three candidates were rendered (blue bubble+dots / dark bubble+voice-waves / hangul 말 bubble). User picked the hangul mark: most legible to the Korean elder user, says "speech" directly, and reuses the app's exact cream/ink palette. The previous icon (white quatrefoil on dark) didn't communicate the app's purpose.
+- **Full-bleed cream background, glyph in the safe zone** — the 말 sits well inside the central ~80 % maskable safe circle, so iOS squircle and Android circle masks crop cleanly; the cream fills to all edges so no transparent corners turn black on iOS.
+- **SVG kept as the source** — PNGs are baked (font rasterized at build-of-icon time), so there's no runtime Korean-font dependency, and the icon is reproducible/tweakable from one file.
+
+**Verification**
+- `npm run build` ✓ — `dist/` contains all four assets; `manifest.webmanifest` references `icon-192/512`.

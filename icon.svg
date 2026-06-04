@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Talk Again home-screen icon.
+       Cream canvas matches the app background (#F5F3EF); an ink speech bubble
+       (#1A1A1A) holds the hangul 말 ("speech"). Full-bleed background so iOS /
+       Android masks (rounded-rect, circle) crop cleanly; the glyph sits in the
+       central safe zone. Regenerate the PNGs from this source:
+         rsvg-convert -w 512 -h 512 icon.svg -o public/icon-512.png
+         rsvg-convert -w 192 -h 192 icon.svg -o public/icon-192.png
+         rsvg-convert -w 180 -h 180 icon.svg -o public/apple-touch-icon.png
+         rsvg-convert -w 256 -h 256 icon.svg -o /tmp/fav.png
+         magick /tmp/fav.png -define icon:auto-resize=48,32,16 public/favicon.ico -->
+  <rect width="512" height="512" fill="#F5F3EF"/>
+  <path d="M104 120 h304 a52 52 0 0 1 52 52 v150 a52 52 0 0 1 -52 52 h-150 l-92 78 v-78 h-62 a52 52 0 0 1 -52 -52 v-150 a52 52 0 0 1 52 -52 z" fill="#1A1A1A"/>
+  <text x="256" y="262" font-family="Apple SD Gothic Neo, AppleGothic, sans-serif" font-size="190" font-weight="800" fill="#F5F3EF" text-anchor="middle" dominant-baseline="central">말</text>
+</svg>
