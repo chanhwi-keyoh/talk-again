@@ -444,3 +444,21 @@
 **Verification**
 - `npm run build` ✓; `tsc -p tsconfig.app.json --noEmit` ✓.
 - Manual in-app verification (intent → openers → speak) pending on device.
+
+---
+
+## Entry 14 — 2026-06-04 · Header Stops Resizing When Speaking
+
+**Request** (user, with two before/after screenshots)
+- "버튼을 누르면 버튼 사이즈가 바껴" — tapping a phrase visibly reflowed the top bar (tabs re-wrapping, partner chip re-truncating).
+
+**Root cause**
+- `VoiceStatusChip` (compact) had only `max-w-[240px]`, no fixed width. On TTS start its label swaps from a long ready-state string ("AI 목소리 준비됨") to a short one ("말하는 중…"); the width changed with the text, and since the chip was a flexible header child, the whole flex row redistributed — tabs re-wrapped, the partner chip re-truncated.
+
+**Fix**
+- `VoiceStatusChip` compact → **fixed, viewport-keyed width** (`w-[clamp(96px,15vw,176px)] shrink-0`, truncate). Width no longer depends on the label, so speaking can't reflow the header.
+- `src/App.tsx` — tabs `shrink-0 whitespace-nowrap` (no more multi-line wrap) and tighter `short:` paddings/text across tabs, partner chip, mood chip, settings, and the right cluster gap, so the dense landscape-phone header fits on one stable row.
+
+**Verification**
+- `npm run build` ✓; `tsc -p tsconfig.app.json --noEmit` ✓.
+- Visual re-check on device pending.

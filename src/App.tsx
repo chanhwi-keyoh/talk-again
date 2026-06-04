@@ -127,7 +127,7 @@ export default function App() {
           <nav
             role="tablist"
             aria-label={lang === "ko" ? "화면 선택" : "Select view"}
-            className="flex gap-gap-sm"
+            className="flex shrink-0 gap-gap-sm short:gap-2"
           >
             {TABS.map((tab) => {
               const selected = page === tab.key;
@@ -139,16 +139,17 @@ export default function App() {
                   aria-selected={selected}
                   onClick={() => setPage(tab.key)}
                   className={[
-                    "flex min-h-[52px] items-center gap-2 rounded-tile border-4 px-4 py-1.5 text-[20px] font-bold shadow-tile active:shadow-tile-pressed",
+                    "flex min-h-[52px] shrink-0 items-center gap-2 whitespace-nowrap rounded-tile border-4 px-4 py-1.5 text-[20px] font-bold shadow-tile active:shadow-tile-pressed",
+                    "short:min-h-[44px] short:gap-1.5 short:border-2 short:px-3 short:text-[16px]",
                     selected
                       ? "border-ink bg-ink text-canvas"
                       : "border-border bg-soft text-ink",
                   ].join(" ")}
                 >
-                  <span aria-hidden className="text-[24px] leading-none">
+                  <span aria-hidden className="text-[24px] leading-none short:text-[20px]">
                     {tab.icon}
                   </span>
-                  <span>{t(tab.label)}</span>
+                  <span className="whitespace-nowrap">{t(tab.label)}</span>
                 </button>
               );
             })}
@@ -165,17 +166,17 @@ export default function App() {
                 ? t("partner.chip.aria").replace("{name}", partner.name)
                 : t("partner.chip.aria.none")
             }
-            className="ml-2 flex min-h-[52px] min-w-0 items-center gap-2 rounded-tile border-2 border-ink bg-soft px-3 text-ink shadow-tile active:shadow-tile-pressed"
+            className="ml-2 flex min-h-[52px] min-w-0 items-center gap-2 rounded-tile border-2 border-ink bg-soft px-3 text-ink shadow-tile active:shadow-tile-pressed short:ml-1 short:min-h-[44px] short:gap-1.5 short:px-2"
           >
-            <span aria-hidden className="text-[22px] leading-none">
+            <span aria-hidden className="text-[22px] leading-none short:text-[19px]">
               {partner?.icon ?? "👥"}
             </span>
-            <span className="max-w-[10ch] truncate text-[17px] font-bold leading-none">
+            <span className="max-w-[8ch] truncate text-[17px] font-bold leading-none short:text-[15px]">
               {partner ? partner.name : t("partner.none")}
             </span>
           </button>
 
-          <div className="ml-auto flex min-w-0 items-center gap-gap-sm">
+          <div className="ml-auto flex min-w-0 items-center gap-gap-sm short:gap-2">
             {/* Current-mood button — SHORT screens only. On a landscape phone
                 the bottom EmotionBar is hidden to save height; this compact
                 button shows the active mood and opens the EmotionSheet drawer.
@@ -184,12 +185,12 @@ export default function App() {
               type="button"
               onClick={() => setEmotionSheetOpen(true)}
               aria-label={`${t("emotion.heading")}: ${t(`emotion.${emotion}` as const)}`}
-              className="hidden min-h-[52px] items-center gap-2 rounded-tile border-2 border-ink bg-soft px-3 text-ink shadow-tile active:shadow-tile-pressed short:flex"
+              className="hidden min-h-[52px] items-center gap-2 rounded-tile border-2 border-ink bg-soft px-3 text-ink shadow-tile active:shadow-tile-pressed short:flex short:min-h-[44px] short:gap-1.5 short:px-2"
             >
-              <span aria-hidden className="text-[24px] leading-none">
+              <span aria-hidden className="text-[24px] leading-none short:text-[19px]">
                 {EMOTION_META[emotion].icon}
               </span>
-              <span className="text-[15px] font-bold leading-none">
+              <span className="text-[15px] font-bold leading-none short:text-[14px]">
                 {t(`emotion.${emotion}` as const)}
               </span>
             </button>
@@ -206,9 +207,9 @@ export default function App() {
               type="button"
               onClick={() => setSettingsOpen(true)}
               aria-label={t("settings.open")}
-              className="flex min-h-[52px] items-center justify-center rounded-tile border-2 border-ink bg-soft px-4 text-ink shadow-tile active:shadow-tile-pressed"
+              className="flex min-h-[52px] items-center justify-center rounded-tile border-2 border-ink bg-soft px-4 text-ink shadow-tile active:shadow-tile-pressed short:min-h-[44px] short:px-3"
             >
-              <span aria-hidden className="text-[26px] leading-none">
+              <span aria-hidden className="text-[26px] leading-none short:text-[22px]">
                 ⚙
               </span>
             </button>

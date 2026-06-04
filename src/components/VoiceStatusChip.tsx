@@ -71,8 +71,16 @@ export function VoiceStatusChip({
       data-active-engine={active}
       title={message}
       className={[
-        "flex min-w-0 items-center gap-3 rounded-pill bg-soft text-ink",
-        compact ? "max-w-[240px] px-4 py-2.5 text-body" : "px-5 py-3 text-body",
+        "flex items-center rounded-pill bg-soft text-ink",
+        // Compact (top-bar) variant: a FIXED, content-independent width. The
+        // label swaps between short ("말하는 중…") and long ("AI 목소리 준비됨")
+        // states; without a fixed width that swap would resize the chip and
+        // reflow the whole header (tabs re-wrapping, partner chip re-truncating)
+        // every time the elder taps a phrase. Width keyed to the viewport, never
+        // the text; overflow truncates.
+        compact
+          ? "w-[clamp(96px,15vw,176px)] shrink-0 gap-2 px-3 py-2.5 text-body short:py-2 short:text-[15px]"
+          : "min-w-0 gap-3 px-5 py-3 text-body",
       ].join(" ")}
     >
       <span
