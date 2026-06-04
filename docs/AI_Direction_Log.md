@@ -397,3 +397,27 @@
 **Verification**
 - `npm run build` ✓; `tsc -p tsconfig.app.json --noEmit` ✓.
 - Manual in-app verification (swipe + arrows + dots on device widths) still pending.
+
+---
+
+## Entry 12 — 2026-06-04 · Partner Picker — Preset Grid + Voice-Only Add
+
+**Request** (user, after living with the partner feature)
+- "감정처럼 프리셋이있어서 편하게 선택하는게 좋을것같아 (키보드 타자 최소화) + 칸이 있어서 누르면 새로운 사람 추가 할수있게 : 추가는 타자 x . 마이크로 입력" — pick a partner the way you pick a mood (tap a preset tile, no typing); a "＋" tile to add a new person; and adding must use the microphone, not the keyboard.
+
+**What Claude Code shipped**
+- `src/types.ts` — `Partner.icon?` (decorative emoji on the tile; the 호칭 label always sits beside it, so it's never the only signal).
+- `src/lib/partner.ts` — replaced the 2-item seed with a 6-tile **preset palette** (아내/아들/딸/손주 → 반말, 의사 선생님/이웃 → 존댓말), each with a fitting face; `DEFAULT_PARTNER_ICON` (🧑) for voice-added people; `add()` now takes an optional icon.
+- `src/components/PartnerProvider.tsx` — `add` carries the icon; **safe one-time migration**: a list that is exactly the untouched old seed (`seed-family`/`seed-guest`) upgrades to the new presets, while any list the user actually changed is left alone.
+- `src/components/PartnerSheet.tsx` — rewritten as a **mood-like 2-col grid** of partner tiles (tap = select + close, zero typing) with a trailing dashed **＋ tile**. The add flow (`AddByVoice`) captures the 호칭 by **microphone** via `useSTT` — press to talk, see "이렇게 들었어요", 🔁 다시 말하기, tap 반말/존댓말, 추가. No text field at all (graceful unsupported-browser message instead). An **편집** toggle turns the grid into a delete mode (🗑) so a mis-heard voice entry can be removed without colliding with the select tap.
+- `src/lib/i18n.ts` — swapped the text-input strings for `partner.addTile` / `partner.edit(.done)` / `partner.add.mic.*` / `partner.add.captured` / `partner.add.again` / `partner.add.unsupported` / `partner.add.cancel` (ko + en).
+- `src/App.tsx` — header chip shows the partner's icon.
+
+**Design decisions**
+- **Tap-first, voice-second, type-never** — matches the elder's reality (typing is hard) and mirrors the emotion picker he already knows.
+- **Edit mode instead of per-tile ✕** — avoids a tiny delete target overlapping the big select target (mis-tap risk); the visible 편집 toggle keeps it discoverable (no hidden gesture, §4).
+- **Migrate only the pristine seed** — never clobbers a list the user has invested in.
+
+**Verification**
+- `npm run build` ✓; `tsc -p tsconfig.app.json --noEmit` ✓.
+- Manual in-app verification (tap-select, ＋ voice capture, 편집 delete) still pending — STT needs a real device gesture + mic permission.

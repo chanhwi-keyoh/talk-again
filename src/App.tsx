@@ -168,7 +168,7 @@ export default function App() {
             className="ml-2 flex min-h-[52px] min-w-0 items-center gap-2 rounded-tile border-2 border-ink bg-soft px-3 text-ink shadow-tile active:shadow-tile-pressed"
           >
             <span aria-hidden className="text-[22px] leading-none">
-              👥
+              {partner?.icon ?? "👥"}
             </span>
             <span className="max-w-[10ch] truncate text-[17px] font-bold leading-none">
               {partner ? partner.name : t("partner.none")}

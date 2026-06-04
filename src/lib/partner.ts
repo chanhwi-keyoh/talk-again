@@ -22,12 +22,21 @@ export const SPEECH_LEVEL_META: Record<
   polite: { ko: "존댓말", en: "Polite", icon: "🤝" },
 };
 
-/** Seed partners so the feature is usable on first launch without setup. The
- *  IDs are stable strings (not random) so they survive a re-seed and match what
- *  was persisted last time. The user can rename, re-level, add, or delete. */
+/** Neutral face for partners added by voice (no preset icon). */
+export const DEFAULT_PARTNER_ICON = "🧑";
+
+/** Seed partners so the picker is useful on first launch with zero typing —
+ *  the elder just taps a familiar 호칭, the way he taps a mood. Speech level is
+ *  pre-set to the natural choice (close family → 반말, outsiders → 존댓말). IDs
+ *  are stable strings so they survive a re-seed. Everything is editable: tap to
+ *  pick, "+" to add by voice, 편집 to delete. */
 export const DEFAULT_PARTNERS: ReadonlyArray<Partner> = [
-  { id: "seed-family", name: "가족", speechLevel: "casual" },
-  { id: "seed-guest", name: "이웃·손님", speechLevel: "polite" },
+  { id: "seed-wife", name: "아내", speechLevel: "casual", icon: "👵" },
+  { id: "seed-son", name: "아들", speechLevel: "casual", icon: "👨" },
+  { id: "seed-daughter", name: "딸", speechLevel: "casual", icon: "👩" },
+  { id: "seed-grandchild", name: "손주", speechLevel: "casual", icon: "🧒" },
+  { id: "seed-doctor", name: "의사 선생님", speechLevel: "polite", icon: "🩺" },
+  { id: "seed-neighbor", name: "이웃", speechLevel: "polite", icon: "🧑‍🌾" },
 ];
 
 export interface PartnerContextValue {
@@ -37,7 +46,7 @@ export interface PartnerContextValue {
   currentId: string | null;
   select: (id: string) => void;
   /** Add a partner and immediately select it. Returns the new id. */
-  add: (name: string, speechLevel: SpeechLevel) => string;
+  add: (name: string, speechLevel: SpeechLevel, icon?: string) => string;
   update: (id: string, patch: Partial<Omit<Partner, "id">>) => void;
   remove: (id: string) => void;
 }

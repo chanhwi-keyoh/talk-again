@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import {
+  DEFAULT_PARTNER_ICON,
   DEFAULT_PARTNERS,
   PartnerContext,
   type PartnerContextValue,
@@ -19,9 +20,17 @@ import type { Partner, SpeechLevel } from "@/types";
 export function PartnerProvider({ children }: { children: ReactNode }) {
   const [partners, setPartners] = useState<Partner[]>(() => {
     const stored = readJSON<Partner[]>(STORAGE_KEYS.partners, []);
-    return Array.isArray(stored) && stored.length > 0
-      ? stored
-      : [...DEFAULT_PARTNERS];
+    if (!Array.isArray(stored) || stored.length === 0) {
+      return [...DEFAULT_PARTNERS];
+    }
+    // One-time refresh: an EARLY tester may have the original two-item seed
+    // (가족 / 이웃·손님) persisted. If the list is exactly that untouched seed,
+    // upgrade to the richer preset set. Any list the user has actually changed
+    // (renamed, added, deleted) is left alone.
+    const ids = stored.map((p) => p.id).sort();
+    const isOldSeed =
+      ids.length === 2 && ids[0] === "seed-family" && ids[1] === "seed-guest";
+    return isOldSeed ? [...DEFAULT_PARTNERS] : stored;
   });
   const [currentId, setCurrentId] = useState<string | null>(() =>
     readJSON<string | null>(STORAGE_KEYS.partnerCurrent, null),
@@ -37,15 +46,21 @@ export function PartnerProvider({ children }: { children: ReactNode }) {
 
   const select = useCallback((id: string) => setCurrentId(id), []);
 
-  const add = useCallback((name: string, speechLevel: SpeechLevel) => {
-    const id =
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        : `p-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    setPartners((prev) => [...prev, { id, name: name.trim(), speechLevel }]);
-    setCurrentId(id);
-    return id;
-  }, []);
+  const add = useCallback(
+    (name: string, speechLevel: SpeechLevel, icon = DEFAULT_PARTNER_ICON) => {
+      const id =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `p-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      setPartners((prev) => [
+        ...prev,
+        { id, name: name.trim(), speechLevel, icon },
+      ]);
+      setCurrentId(id);
+      return id;
+    },
+    [],
+  );
 
   const update = useCallback(
     (id: string, patch: Partial<Omit<Partner, "id">>) => {

@@ -52,6 +52,10 @@ export interface Partner {
   /** 호칭 — what this person is to him (e.g. "손녀", "할머니", "의사 선생님"). */
   name: string;
   speechLevel: SpeechLevel;
+  /** Emoji shown on the picker tile. Presets carry a fitting face; people added
+   *  by voice get a neutral default. Purely decorative — never the only signal
+   *  (the 호칭 label always sits beside it). */
+  icon?: string;
 }
 
 /** One past exchange. Stored internally in IndexedDB to give AI Suggestions
