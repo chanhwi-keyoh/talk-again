@@ -3,13 +3,14 @@ import { ConversationPanel } from "@/components/ConversationPanel";
 import { EmergencyBanner } from "@/components/EmergencyBanner";
 import { EmergencyButton } from "@/components/EmergencyButton";
 import { EmotionBar } from "@/components/EmotionBar";
+import { EmotionSheet } from "@/components/EmotionSheet";
 import { PersonaOnboarding } from "@/components/PersonaOnboarding";
 import { PortraitHint } from "@/components/PortraitHint";
 import { QuickPhrasePanel } from "@/components/QuickPhrasePanel";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import { VoiceStatusChip } from "@/components/VoiceStatusChip";
 import { useEmergency } from "@/lib/emergency";
-import { useEmotion } from "@/lib/emotion";
+import { EMOTION_META, useEmotion } from "@/lib/emotion";
 import { useI18n, type MessageKey } from "@/lib/i18n";
 import { usePersona } from "@/lib/persona";
 import { useTTS } from "@/hooks/useTTS";
@@ -69,6 +70,7 @@ export default function App() {
     speak,
   } = useTTS();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [emotionSheetOpen, setEmotionSheetOpen] = useState(false);
   const [page, setPage] = useState<PageKey>("quick");
   const [onboardingOpen, setOnboardingOpen] = useState(false);
 
@@ -148,6 +150,23 @@ export default function App() {
           </nav>
 
           <div className="ml-auto flex min-w-0 items-center gap-gap-sm">
+            {/* Current-mood button — SHORT screens only. On a landscape phone
+                the bottom EmotionBar is hidden to save height; this compact
+                button shows the active mood and opens the EmotionSheet drawer.
+                On tablets it's hidden because the persistent bar is visible. */}
+            <button
+              type="button"
+              onClick={() => setEmotionSheetOpen(true)}
+              aria-label={`${t("emotion.heading")}: ${t(`emotion.${emotion}` as const)}`}
+              className="hidden min-h-[52px] items-center gap-2 rounded-tile border-2 border-ink bg-soft px-3 text-ink shadow-tile active:shadow-tile-pressed short:flex"
+            >
+              <span aria-hidden className="text-[24px] leading-none">
+                {EMOTION_META[emotion].icon}
+              </span>
+              <span className="text-[15px] font-bold leading-none">
+                {t(`emotion.${emotion}` as const)}
+              </span>
+            </button>
             <VoiceStatusChip
               compact
               preferred={preferredEngine}
@@ -191,6 +210,11 @@ export default function App() {
       </main>
 
       <EmotionBar />
+
+      <EmotionSheet
+        open={emotionSheetOpen}
+        onClose={() => setEmotionSheetOpen(false)}
+      />
 
       <SettingsPanel
         open={settingsOpen}

@@ -3,18 +3,21 @@ import { useI18n } from "@/lib/i18n";
 import type { Emotion } from "@/types";
 
 /* -----------------------------------------------------------------------------
- * EmotionBar — slim, always-visible footer in the fixed app shell.
+ * EmotionBar — slim footer in the fixed app shell, shown on TALL screens only.
  *
  * Replaces the old EmotionPicker (which sat at the bottom of a scrolling
  * column). In the landscape page-shell, mood is a property of *whatever* the
- * elder is about to say — a quick phrase or an AI reply — so it lives in a
- * persistent footer that never scrolls away. Change the mood once, then speak
- * from either page; no "scroll down to pick, scroll up to talk" detour.
+ * elder is about to say — a quick phrase or an AI reply — so on a tablet it
+ * lives in a persistent footer that never scrolls away. Change the mood once,
+ * then speak from either page; no "scroll down to pick, scroll up to talk".
  *
- * Sizing uses `clamp(min, vh, max)` so each tile shrinks on a short landscape
- * phone but grows on a tall iPad — keeping the bar to a single row in both.
- * Selection language (dark fill = selected) matches LangChoice / VoiceChoice /
- * TabSwitcher so the cue is consistent across the whole app.
+ * On a SHORT landscape phone (~390px tall) this 7-tile footer ate too much of
+ * the scarce height, so there it's hidden (`tall:flex` / `hidden`) and replaced
+ * by a compact current-mood button in the header that opens `EmotionSheet` (a
+ * right-side drawer). Same emotions, same selection language, recovered space.
+ *
+ * Selection language (dark fill = selected) matches LangChoice / VoiceChoice so
+ * the cue is consistent across the whole app.
  * ---------------------------------------------------------------------------*/
 export function EmotionBar() {
   const { t } = useI18n();
@@ -23,7 +26,7 @@ export function EmotionBar() {
   return (
     <footer
       aria-labelledby="emotion-heading"
-      className="flex shrink-0 items-center gap-gap-sm border-t-2 border-border bg-soft/40 px-6 py-2"
+      className="hidden shrink-0 items-center gap-gap-sm border-t-2 border-border bg-soft/40 px-6 py-2 tall:flex"
     >
       <h2
         id="emotion-heading"

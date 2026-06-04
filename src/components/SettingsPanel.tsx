@@ -56,23 +56,29 @@ export function SettingsPanel({
       aria-labelledby="settings-title"
       className="fixed inset-0 z-50 flex flex-col bg-canvas"
     >
-      <header className="flex items-center justify-between border-b-2 border-border px-10 py-6">
-        <h2 id="settings-title" className="text-title text-ink">
+      <header className="flex items-center justify-between border-b-2 border-border px-10 py-6 short:px-6 short:py-3">
+        <h2
+          id="settings-title"
+          className="text-title text-ink short:text-label-lg"
+        >
           {t("settings.title")}
         </h2>
         <button
           ref={closeRef}
           type="button"
           onClick={onClose}
-          className="rounded-pill border-2 border-ink bg-canvas px-8 py-4 text-label text-ink shadow-tile active:shadow-tile-pressed"
+          className="rounded-pill border-2 border-ink bg-canvas px-8 py-4 text-label text-ink shadow-tile active:shadow-tile-pressed short:px-5 short:py-2 short:text-body"
         >
           {t("settings.close")}
         </button>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-10 py-10">
-        <section aria-labelledby="lang-heading" className="mb-14 max-w-3xl">
-          <h3 id="lang-heading" className="mb-4 text-label-lg text-ink">
+      <main className="flex-1 overflow-y-auto px-10 py-10 short:px-6 short:py-5">
+        <section aria-labelledby="lang-heading" className="mb-14 max-w-3xl short:mb-8">
+          <h3
+            id="lang-heading"
+            className="mb-4 text-label-lg text-ink short:mb-2 short:text-label"
+          >
             {t("settings.language")}
           </h3>
           <p className="mb-gap-sm text-body text-muted">
@@ -128,12 +134,13 @@ function LangChoice({ value, current, label, onSelect }: LangChoiceProps) {
         "flex min-h-tile-min min-w-tile-min flex-col items-center justify-center gap-3",
         "rounded-tile border-4 px-10 py-6 text-label-lg shadow-tile",
         "transition-colors",
+        "short:min-h-[84px] short:min-w-[120px] short:gap-1 short:px-6 short:py-3 short:text-label",
         selected
           ? "border-ink bg-ink text-canvas"
           : "border-border bg-soft text-ink",
       ].join(" ")}
     >
-      <span aria-hidden className="text-[40px] leading-none">
+      <span aria-hidden className="text-[40px] leading-none short:text-[26px]">
         {selected ? "✓" : " "}
       </span>
       <span>{label}</span>
@@ -149,7 +156,10 @@ function VoiceSection() {
   const { engine, setEngine } = useVoicePref();
   return (
     <section aria-labelledby="voice-heading" className="max-w-3xl">
-      <h3 id="voice-heading" className="mb-4 text-label-lg text-ink">
+      <h3
+        id="voice-heading"
+        className="mb-4 text-label-lg text-ink short:mb-2 short:text-label"
+      >
         {t("settings.voice")}
       </h3>
       <p className="mb-gap-sm text-body text-muted">
@@ -205,19 +215,20 @@ function VoiceChoice({
         "flex flex-1 items-center gap-gap-sm",
         "min-h-tile-min rounded-tile border-4 px-8 py-6 text-left shadow-tile",
         "transition-colors",
+        "short:min-h-[72px] short:gap-3 short:px-5 short:py-3",
         selected
           ? "border-ink bg-ink text-canvas"
           : "border-border bg-soft text-ink",
       ].join(" ")}
     >
-      <span aria-hidden className="text-[56px] leading-none">
+      <span aria-hidden className="text-[56px] leading-none short:text-[34px]">
         {selected ? "✓" : icon}
       </span>
       <span className="flex flex-col">
-        <span className="text-label-lg">{label}</span>
+        <span className="text-label-lg short:text-label">{label}</span>
         <span
           className={[
-            "text-body",
+            "text-body short:text-[15px]",
             selected ? "text-canvas/80" : "text-muted",
           ].join(" ")}
         >
@@ -242,8 +253,11 @@ function PersonaSection({
   const { hasBeenSet, reset } = usePersona();
 
   return (
-    <section aria-labelledby="persona-heading" className="mt-14 max-w-3xl">
-      <h3 id="persona-heading" className="mb-4 text-label-lg text-ink">
+    <section aria-labelledby="persona-heading" className="mt-14 max-w-3xl short:mt-8">
+      <h3
+        id="persona-heading"
+        className="mb-4 text-label-lg text-ink short:mb-2 short:text-label"
+      >
         {t("settings.persona")}
       </h3>
       <p className="mb-gap-sm whitespace-pre-line text-body text-muted">
@@ -257,9 +271,9 @@ function PersonaSection({
             onCloseSettings();
             onReenter();
           }}
-          className="flex min-h-[80px] items-center gap-3 rounded-tile border-2 border-ink bg-soft px-8 py-4 text-label text-ink shadow-tile active:shadow-tile-pressed"
+          className="flex min-h-[80px] items-center gap-3 rounded-tile border-2 border-ink bg-soft px-8 py-4 text-label text-ink shadow-tile active:shadow-tile-pressed short:min-h-[60px] short:px-5 short:py-2 short:text-body"
         >
-          <span aria-hidden className="text-[36px] leading-none">
+          <span aria-hidden className="text-[36px] leading-none short:text-[26px]">
             ↻
           </span>
           <span>{t("settings.persona.reenter")}</span>
@@ -270,9 +284,9 @@ function PersonaSection({
             onClick={() => {
               if (window.confirm(t("settings.persona.clearConfirm"))) reset();
             }}
-            className="flex min-h-[80px] items-center gap-3 rounded-tile border-2 border-border bg-canvas px-8 py-4 text-label text-muted shadow-tile active:shadow-tile-pressed"
+            className="flex min-h-[80px] items-center gap-3 rounded-tile border-2 border-border bg-canvas px-8 py-4 text-label text-muted shadow-tile active:shadow-tile-pressed short:min-h-[60px] short:px-5 short:py-2 short:text-body"
           >
-            <span aria-hidden className="text-[36px] leading-none">
+            <span aria-hidden className="text-[36px] leading-none short:text-[26px]">
               ✕
             </span>
             <span>{t("settings.persona.clear")}</span>

@@ -11,6 +11,16 @@ const config: Config = {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      // Height-based breakpoints. The app is landscape-locked, so width is
+      // always plentiful; what differs between devices is VERTICAL space:
+      // a landscape phone is short (~390px tall) while a tablet is tall
+      // (~744px+). We branch the chrome on height — e.g. the emotion bar is a
+      // persistent footer on tablets but collapses to a header button + drawer
+      // on phones — instead of guessing from width.
+      screens: {
+        short: { raw: "(max-height: 599px)" },
+        tall: { raw: "(min-height: 600px)" },
+      },
       colors: {
         // Calm off-white background (warmer than #FFF; less glare than pure white).
         canvas: "#F5F3EF",

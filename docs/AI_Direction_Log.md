@@ -325,3 +325,27 @@
 
 **Verification**
 - `npm run build` ✓ — `dist/` contains all four assets; `manifest.webmanifest` references `icon-192/512`.
+
+---
+
+## Entry 9 — 2026-06-04 · Height-Responsive Chrome — Phone Mood Drawer + Smaller Settings
+
+**Request** (user, after living with the page-shell on both devices)
+- "아이패드에서는 레이아웃이 좋은데 핸드폰은 가로 폭이 좁아서 지금 레이아웃이 좀 답답하게 느껴지네. 감정 선택을 다른 페이지로 구분을 하거나 오른쪽 화면 끝을 … 평소에는 안 보이지만 쉽게 접근할수있도록" — on a narrow landscape phone the persistent 7-tile emotion footer crowds everything; he wants mood normally out of the way but still easy to reach. Plus: "가로로 쓸때 설정 페이지 버튼 사이즈도 좀 불편해 (너무 큼) 개선해줘".
+
+**What Claude Code shipped**
+- `tailwind.config.ts` — added **height-based breakpoints** `short: (max-height: 599px)` / `tall: (min-height: 600px)`. The app is landscape-locked, so width is always plentiful; the real device difference is *vertical* space (phone landscape ~390 px vs iPad ~744 px+). Branching the chrome on height is more honest than guessing from width. (`extend.screens` merges with defaults, so the existing `sm:` width breakpoint still works.)
+- `src/components/EmotionBar.tsx` — the persistent footer is now **tall-screens-only** (`hidden … tall:flex`). On a tablet mood stays docked on screen; on a phone it gets out of the way.
+- `src/components/EmotionSheet.tsx` (new) — a right-edge **mood drawer** for short screens. Opened by a *visible* header button (not a swipe — CLAUDE.md §4 forbids hidden-gesture-only features); slides over the right edge (matching the user's "오른쪽 화면 끝" mental model). 2-column grid of all 7 emotions, same dark-fill selection language as the bar; picking applies immediately **and** closes (one tap, no confirm). Backdrop tap, ✕, and Escape all close it; nothing auto-dismisses.
+- `src/App.tsx` — added a compact current-mood header button (short-screens-only, `short:flex`) showing the active mood's icon + label and opening the sheet; wired `EmotionSheet` state.
+- `src/components/SettingsPanel.tsx` — added `short:` overrides throughout so the panel shrinks on a landscape phone: language tiles `160→~107 px`, voice tiles to `min-h-[72px]`, smaller section headers/padding/glyphs. Tablet sizes unchanged.
+
+**Design decisions**
+- **Visible trigger, not a swipe** — the user floated "swipe in from the right edge," but a swipe-only control violates the no-hidden-gesture rule. The drawer keeps the right-edge *placement* he pictured while the header mood-chip makes it discoverable and one-tap.
+- **Branch on height, reuse one source of truth for mood** — the bar and the drawer share `EMOTION_ORDER` + `EMOTION_META`, so the two presentations can't drift. Only the container differs per height.
+- **Smaller-but-not-small Settings** — short-screen tiles still clear the ≥120 px / big-tap-target intent (≥~107×139, ≥72 px); the change trims the *excess* that made the panel feel cramped in landscape, not the accessibility floor.
+
+**Verification**
+- `npm run build` ✓ (192.75 kB JS).
+- Preview @ 844×390 (phone): bottom `EmotionBar` `display:none`, header mood button visible → opens the drawer; picking 행복 applied it and closed the drawer, header chip updated to "지금 기분: 행복"; no page scroll. Settings tiles measured ~107×139 / ~101 px.
+- Preview @ 1180×820 (iPad): bottom `EmotionBar` visible with all 7 moods, header mood button `display:none`; no scroll.
