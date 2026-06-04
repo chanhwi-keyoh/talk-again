@@ -439,6 +439,8 @@
 - **Intent in the user message** — like partner/transcript, it's per-call, so the persona system prompt stays cached.
 - **Openers respect partner + persona + mood + recent context** — the same conditioning as replies, so "먼저 거는 말"도 상대에 맞는 말투로 나온다.
 
+**Follow-up (same day)** — the intent chips were first placed at the bottom of the short HEARD pane and got clipped on a landscape phone. Moved them into the empty REPLY pane as a 2×2 grid (where the openers land anyway, and there is room), with `overflow-y-auto` as a safety net.
+
 **Verification**
 - `npm run build` ✓; `tsc -p tsconfig.app.json --noEmit` ✓.
 - Manual in-app verification (intent → openers → speak) pending on device.

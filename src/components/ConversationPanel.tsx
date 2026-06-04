@@ -308,34 +308,6 @@ export function ConversationPanel() {
           )}
         </div>
 
-        {/* "Or start the conversation" — opener intents. Shown when there's no
-            transcript to reply to and we're not mid-listen/request, so the
-            elder can speak first instead of only reacting. */}
-        {!hasTranscript &&
-          phase !== "listening" &&
-          phase !== "requesting" && (
-            <div className="shrink-0">
-              <p className="mb-1 text-[14px] font-semibold text-muted">
-                {t("conversation.openerHeading")}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {OPENER_INTENTS.map((it) => (
-                  <button
-                    key={it.key}
-                    type="button"
-                    onClick={() => void requestOpeners(it.key)}
-                    className="flex min-h-[48px] items-center gap-1.5 rounded-tile border-2 border-ink bg-soft px-3 text-[16px] font-bold text-ink shadow-tile active:shadow-tile-pressed"
-                  >
-                    <span aria-hidden className="text-[20px] leading-none">
-                      {it.icon}
-                    </span>
-                    {t(`conversation.opener.${it.key}` as const)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
         {errorKey && (
           <p
             role="alert"
@@ -386,6 +358,32 @@ export function ConversationPanel() {
               </li>
             ))}
           </ul>
+        ) : !hasTranscript &&
+          phase !== "listening" &&
+          phase !== "requesting" ? (
+          /* Nothing heard yet → offer to start the conversation. Tapping an
+             intent fills this same pane with opening lines. The reply pane has
+             the room the short heard pane doesn't. */
+          <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
+            <p className="shrink-0 text-[15px] font-semibold text-muted">
+              {t("conversation.openerHeading")}
+            </p>
+            <div className="grid min-h-0 flex-1 grid-cols-2 gap-2">
+              {OPENER_INTENTS.map((it) => (
+                <button
+                  key={it.key}
+                  type="button"
+                  onClick={() => void requestOpeners(it.key)}
+                  className="flex min-h-[60px] items-center justify-center gap-2 rounded-tile border-4 border-ink bg-soft px-3 text-[clamp(16px,2.4vh,22px)] font-bold text-ink shadow-tile active:shadow-tile-pressed"
+                >
+                  <span aria-hidden className="text-[clamp(22px,3.2vh,30px)] leading-none">
+                    {it.icon}
+                  </span>
+                  {t(`conversation.opener.${it.key}` as const)}
+                </button>
+              ))}
+            </div>
+          </div>
         ) : (
           <div className="flex min-h-0 flex-1 items-center justify-center px-2 text-center">
             <p className="text-body text-muted">
