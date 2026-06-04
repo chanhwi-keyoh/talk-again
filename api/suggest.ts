@@ -14,7 +14,12 @@
  *     pay ~10% of the input cost on the cached portion.
  *   - Edge runtime + 10 s function timeout (vercel default for edge).
  *
- * Input  (JSON POST): { transcript, persona, partner?, emotion?, recentExchanges? }
+ * Two modes:
+ *   - REPLY  — `transcript` present: suggest replies to what was just said.
+ *   - OPENER — `transcript` empty but `intent` present: the elder is starting
+ *              the conversation himself; suggest three opening lines.
+ *
+ * Input  (JSON POST): { transcript?, intent?, persona, partner?, emotion?, recentExchanges? }
  * Output (success):   { suggestions: [string, string, string] }
  * Output (error):     JSON with appropriate HTTP code.
  * ---------------------------------------------------------------------------*/
@@ -47,6 +52,16 @@ interface PartnerInput {
   name?: string;
   speechLevel?: "casual" | "polite";
 }
+
+/** Opener intents the elder can pick when starting a conversation. Each maps to
+ *  a short instruction the model uses to shape three opening lines. Unknown
+ *  values fall back to a generic "say what's on his mind". */
+const INTENT_GUIDE: Record<string, string> = {
+  greeting: "warmly greet them / check in on how they are (안부 인사)",
+  request: "ask them for help with something (부탁)",
+  question: "ask something he is curious about (질문)",
+  share: "bring up something he wants to talk about (하고 싶은 말 · small talk)",
+};
 
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -118,6 +133,7 @@ function buildUserMessage(
   emotion: string | undefined,
   recent: ReadonlyArray<ExchangeInput>,
   partner: PartnerInput | undefined,
+  intent: string,
 ): string {
   const lines: string[] = [];
 
@@ -153,6 +169,21 @@ function buildUserMessage(
     lines.push("Reflect that mood subtly in the wording, not overtly.");
     lines.push("");
   }
+  // OPENER mode: no transcript — the elder is starting the conversation. The
+  // three suggestions are opening lines, not replies.
+  if (!transcript) {
+    const guide = INTENT_GUIDE[intent] ?? "say what is on his mind";
+    lines.push(
+      "He is STARTING the conversation himself — nobody has spoken to him yet.",
+    );
+    lines.push(`What he wants to do: ${guide}.`);
+    lines.push("");
+    lines.push(
+      "Suggest three different opening lines he might say to begin, in the JSON shape described. Cover a range (a brief one, a warmer one, a more specific one). They are openers, not answers.",
+    );
+    return lines.join("\n");
+  }
+
   lines.push("The other person just said:");
   lines.push(`"${transcript}"`);
 
@@ -226,6 +257,7 @@ export default async function handler(req: Request): Promise<Response> {
 
   let payload: {
     transcript?: unknown;
+    intent?: unknown;
     persona?: unknown;
     partner?: unknown;
     emotion?: unknown;
@@ -239,7 +271,12 @@ export default async function handler(req: Request): Promise<Response> {
 
   const transcript =
     typeof payload.transcript === "string" ? payload.transcript.trim() : "";
-  if (!transcript) return json(400, { error: "transcript_required" });
+  const intent =
+    typeof payload.intent === "string" ? payload.intent.trim() : "";
+  // Reply mode needs a transcript; opener mode needs an intent. One or the other.
+  if (!transcript && !intent) {
+    return json(400, { error: "transcript_or_intent_required" });
+  }
   if (transcript.length > MAX_TRANSCRIPT) {
     return json(413, { error: "transcript_too_long", max: MAX_TRANSCRIPT });
   }
@@ -269,6 +306,7 @@ export default async function handler(req: Request): Promise<Response> {
     emotion,
     recentExchanges,
     partner,
+    intent,
   );
 
   const upstream = await fetch("https://api.anthropic.com/v1/messages", {

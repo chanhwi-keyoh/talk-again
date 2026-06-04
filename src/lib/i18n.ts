@@ -136,6 +136,11 @@ export const messages = {
       "‘듣기 시작’을 누르고 상대가 말씀하시는 걸 들어요.",
     "conversation.questionToggle.add": "❓ 물음표 붙이기",
     "conversation.questionToggle.remove": "❓ 물음표 떼기",
+    "conversation.openerHeading": "또는 내가 먼저 말하기",
+    "conversation.opener.greeting": "안부",
+    "conversation.opener.request": "부탁",
+    "conversation.opener.question": "궁금해",
+    "conversation.opener.share": "하고픈 말",
     "conversation.suggestionsLabel": "할아버지가 하실 말",
     "conversation.suggestionsEmpty":
       "여기에 답변 후보 세 가지가 보일 거예요. ‘답변 받기’를 눌러 주세요.",
@@ -277,6 +282,11 @@ export const messages = {
       "Press “Start listening” and we'll capture what the other person is saying.",
     "conversation.questionToggle.add": "❓ Mark as a question",
     "conversation.questionToggle.remove": "❓ Not a question",
+    "conversation.openerHeading": "Or start the conversation",
+    "conversation.opener.greeting": "Greeting",
+    "conversation.opener.request": "Ask a favor",
+    "conversation.opener.question": "A question",
+    "conversation.opener.share": "Something to say",
     "conversation.suggestionsLabel": "What he could say",
     "conversation.suggestionsEmpty":
       "Three reply options will appear here. Tap “Get replies” to start.",

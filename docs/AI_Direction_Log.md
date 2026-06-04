@@ -421,3 +421,24 @@
 **Verification**
 - `npm run build` ✓; `tsc -p tsconfig.app.json --noEmit` ✓.
 - Manual in-app verification (tap-select, ＋ voice capture, 편집 delete) still pending — STT needs a real device gesture + mic permission.
+
+---
+
+## Entry 13 — 2026-06-04 · Elder Initiates — Opener Intents
+
+**Request** (user)
+- "할아버지가 대화를 시작하거나 먼저 말을걸기는 힘든것 같아" — the flow was listen→reply only; he had no way to speak first.
+
+**What Claude Code shipped**
+- `api/suggest.ts` — a second mode. With no `transcript` but an `intent`, it builds an OPENER prompt ("He is STARTING the conversation … what he wants to do: …") and returns three opening lines instead of replies. `INTENT_GUIDE` maps greeting/request/question/share to a short instruction; validation now needs transcript **or** intent.
+- `src/components/ConversationPanel.tsx` — an "또는 내가 먼저 말하기" row of four intent chips (👋 안부 / 🙏 부탁 / 🤔 궁금해 / 🗣️ 하고픈 말) in the heard pane, shown when there's nothing to reply to and we're not mid-listen/request. Tapping calls `requestOpeners(intent)` → same reply pane fills with openers. Speaking one stores an exchange with `theyHeard: ""` so the memory records he opened.
+- `src/lib/i18n.ts` — ko/en `conversation.openerHeading` + `conversation.opener.*`.
+
+**Design decisions**
+- **Reuse the reply pane, don't add a screen** — openers land in the exact place he already looks for AI suggestions; only the entry point (intent chips vs. listening) differs. Keeps the page count and mental model unchanged.
+- **Intent in the user message** — like partner/transcript, it's per-call, so the persona system prompt stays cached.
+- **Openers respect partner + persona + mood + recent context** — the same conditioning as replies, so "먼저 거는 말"도 상대에 맞는 말투로 나온다.
+
+**Verification**
+- `npm run build` ✓; `tsc -p tsconfig.app.json --noEmit` ✓.
+- Manual in-app verification (intent → openers → speak) pending on device.

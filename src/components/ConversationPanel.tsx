@@ -42,6 +42,15 @@ type Phase =
   | "ready"
   | "error";
 
+/** Conversation-opener intents shown when the elder wants to speak first. The
+ *  `key` is sent to /api/suggest; the label comes from i18n. */
+const OPENER_INTENTS = [
+  { key: "greeting", icon: "👋" },
+  { key: "request", icon: "🙏" },
+  { key: "question", icon: "🤔" },
+  { key: "share", icon: "🗣️" },
+] as const;
+
 export function ConversationPanel() {
   const { t } = useI18n();
   const { persona, hasBeenSet } = usePersona();
@@ -138,6 +147,51 @@ export function ConversationPanel() {
       setPhase("error");
     }
   }, [editedTranscript, persona, hasBeenSet, partner, partnerId, emotion]);
+
+  // OPENER mode: the elder starts the conversation. No transcript — we send an
+  // intent instead and get three opening lines back into the same reply pane.
+  const requestOpeners = useCallback(
+    async (intent: string) => {
+      setPhase("requesting");
+      setErrorKey(null);
+      setSuggestions([]);
+      setEditedTranscript("");
+      try {
+        const recent = await readRecentExchanges(partnerId, 5);
+        const res = await fetch("/api/suggest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            intent,
+            persona: hasBeenSet ? persona : undefined,
+            partner: partnerForRequest(partner),
+            emotion,
+            recentExchanges: recent.map((r) => ({
+              theyHeard: r.theyHeard,
+              heSaid: r.heSaid,
+            })),
+          }),
+        });
+        if (!res.ok) {
+          setErrorKey("aiUnavailable");
+          setPhase("error");
+          return;
+        }
+        const data = (await res.json()) as { suggestions?: string[] };
+        if (!Array.isArray(data.suggestions) || data.suggestions.length === 0) {
+          setErrorKey("aiUnavailable");
+          setPhase("error");
+          return;
+        }
+        setSuggestions(data.suggestions);
+        setPhase("ready");
+      } catch {
+        setErrorKey("aiUnavailable");
+        setPhase("error");
+      }
+    },
+    [persona, hasBeenSet, partner, partnerId, emotion],
+  );
 
   const speakSuggestion = useCallback(
     (text: string) => {
@@ -253,6 +307,34 @@ export function ConversationPanel() {
             )
           )}
         </div>
+
+        {/* "Or start the conversation" — opener intents. Shown when there's no
+            transcript to reply to and we're not mid-listen/request, so the
+            elder can speak first instead of only reacting. */}
+        {!hasTranscript &&
+          phase !== "listening" &&
+          phase !== "requesting" && (
+            <div className="shrink-0">
+              <p className="mb-1 text-[14px] font-semibold text-muted">
+                {t("conversation.openerHeading")}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {OPENER_INTENTS.map((it) => (
+                  <button
+                    key={it.key}
+                    type="button"
+                    onClick={() => void requestOpeners(it.key)}
+                    className="flex min-h-[48px] items-center gap-1.5 rounded-tile border-2 border-ink bg-soft px-3 text-[16px] font-bold text-ink shadow-tile active:shadow-tile-pressed"
+                  >
+                    <span aria-hidden className="text-[20px] leading-none">
+                      {it.icon}
+                    </span>
+                    {t(`conversation.opener.${it.key}` as const)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
         {errorKey && (
           <p
