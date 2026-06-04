@@ -79,3 +79,14 @@ export interface Phrase {
   label: { ko: string; en: string };
   speech: { ko: string; en: string };
 }
+
+/** A page of quick-phrase tiles. The panel shows one page at a time and the
+ *  user moves between them with visible arrows / dots (and swipe as a bonus).
+ *  Grouping by theme keeps each page to ≤ 10 tiles so the 5×2 grid never gets
+ *  crowded, and gives related utterances a predictable home. */
+export interface PhrasePage {
+  id: string;
+  icon: string;
+  label: { ko: string; en: string };
+  phrases: ReadonlyArray<Phrase>;
+}

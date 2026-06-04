@@ -375,3 +375,25 @@
 **Verification**
 - `npm run build` ✓ (200.40 kB JS); `tsc -p tsconfig.app.json --noEmit` ✓.
 - Manual in-app verification still pending.
+
+---
+
+## Entry 11 — 2026-06-04 · Quick Phrases — Swipeable Themed Pages
+
+**Request** (user)
+- "현재 10개 맵핑 되어있는 부분을 좌우로 스와이프해서 넘길수있으면 좋겠어 (스와이프시 다음 맵핑이 나오도록)" — page through more quick-phrase sets by swiping.
+
+**What Claude Code shipped**
+- `src/types.ts` — `PhrasePage { id, icon, label, phrases }`.
+- `src/lib/phrases.ts` — the flat ten are now page 1 (일상); added page 2 (몸·생활: 아파/화장실/물/추워/더워/졸려/약/병원/쉴래/다 됐어) and page 3 (마음: 보고팠어/사랑해/잘했어/미안해/이리 와/같이 가/이거 봐/뭐 해?/고생했어/잘 자). `PHRASE_PAGES` export; `QUICK_PHRASES` kept as an alias of the everyday set. Each page assigns the ten palette hues once, so no two tiles on screen share a color.
+- `src/components/QuickPhrasePanel.tsx` — shows one page in the 5×2 grid with flanking ◀ ▶ buttons and a row of labelled, tappable page dots; **plus** horizontal swipe. A one-shot `suppressTap` ref stops a swipe that ends over a tile from also speaking it, and clears on the next touch so a later genuine tap is never swallowed.
+- `src/lib/i18n.ts` — ko/en `panel.prevPage` / `panel.nextPage` / `panel.pages`.
+
+**Design decisions**
+- **Swipe is a bonus, never the only way** (CLAUDE.md §4: no hidden-gesture-only features). Every page is reachable by a visible arrow and a labelled dot; the swipe just matches the user's mental model.
+- **Arrows in the horizontal margin, dots in one short row** — spends the abundant landscape width, not the scarce height.
+- **Themed pages, ≤10 tiles each** — keeps the grid uncrowded and gives the page-2/3 utterances (incl. conversation-starters like 이리 와 / 뭐 해?) a home, partly seeding the deferred "elder initiates" feature.
+
+**Verification**
+- `npm run build` ✓; `tsc -p tsconfig.app.json --noEmit` ✓.
+- Manual in-app verification (swipe + arrows + dots on device widths) still pending.
