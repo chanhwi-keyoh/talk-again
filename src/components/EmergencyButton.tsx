@@ -16,7 +16,7 @@ import { useI18n } from "@/lib/i18n";
  *
  * Color is paired with a glyph and a label — color is never the only signal.
  * ---------------------------------------------------------------------------*/
-export function EmergencyButton() {
+export function EmergencyButton({ compact = false }: { compact?: boolean }) {
   const { t } = useI18n();
   const { isActive, trigger, stop } = useEmergency();
 
@@ -29,10 +29,16 @@ export function EmergencyButton() {
       aria-label={t("emergency.aria")}
       aria-pressed={isActive}
       className={[
-        "flex min-h-tile-min min-w-tile-min flex-col items-center justify-center gap-2",
-        "rounded-tile border-4 px-8 py-4 text-label text-white shadow-tile",
+        "flex flex-col items-center justify-center gap-1",
+        "rounded-tile border-4 text-white shadow-tile",
         "transition-colors active:shadow-tile-pressed",
         "bg-emergency",
+        // `compact` is the top-bar variant: still a big, unmistakable red
+        // target, but sized to share a single header row instead of being a
+        // 160px tile. The full-size variant stays available for other surfaces.
+        compact
+          ? "min-h-[56px] px-4 py-1.5 text-body"
+          : "min-h-tile-min min-w-tile-min px-8 py-4 text-label",
         // Border + ring contrast: dark red border at rest, white outline ring
         // while active so the broadcasting state is unmistakable even at a
         // glance from across the room.
@@ -41,10 +47,17 @@ export function EmergencyButton() {
           : "border-[#7F0000]",
       ].join(" ")}
     >
-      <span aria-hidden className="text-[56px] leading-none drop-shadow">
+      <span
+        aria-hidden
+        className={
+          compact
+            ? "text-[26px] leading-none"
+            : "text-[56px] leading-none drop-shadow"
+        }
+      >
         {isActive ? "■" : "🆘"}
       </span>
-      <span className="font-bold">
+      <span className={compact ? "text-[15px] font-bold leading-none" : "font-bold"}>
         {isActive ? t("emergency.stop") : t("emergency.button")}
       </span>
     </button>

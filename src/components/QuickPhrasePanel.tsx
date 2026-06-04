@@ -8,54 +8,45 @@ interface QuickPhrasePanelProps {
 }
 
 /* -----------------------------------------------------------------------------
- * QuickPhrasePanel
+ * QuickPhrasePanel — page-shell variant
  *
- * 5×2 grid of high-frequency phrases. Each tile:
- *  - is ≥ 160×160px (well above the 120px floor in CLAUDE.md §4)
- *  - has 32px gaps from its neighbors (tremor-safe)
- *  - carries color + emoji + label, so a tile is identifiable even if the
- *    user has reduced color discrimination (e.g. cataract / lens yellowing)
- *  - speaks on the press, with no confirmation dialog (one-tap principle)
+ * Lives inside the fixed, non-scrolling app shell, so instead of an intrinsic
+ * height it *fills* whatever the shell gives it: a 5×2 CSS grid stretched to
+ * `h-full`. The visible "Everyday phrases" heading is dropped — the top-bar
+ * tab already names this page, and on a short landscape phone every vertical
+ * pixel belongs to the buttons.
  *
- * Layout choice — the panel anchors to the upper portion of the viewport per
- * the research finding that elderly performance improves when primary buttons
- * sit near the top of the screen.
+ * Landscape reality: width is abundant, height is scarce. So tiles are no
+ * longer forced square (`aspect-square` made them as tall as they were wide).
+ * They fill the grid cell — wide and as tall as the row allows — and the icon
+ * / label use `clamp(min, vh, max)` so they shrink on a phone but grow back to
+ * full size on a tall iPad. The tap target stays well above the 120px floor
+ * because the *width* carries it (~140px+ per column).
+ *
+ * Each tile still pairs color + emoji + label and speaks on a single tap with
+ * no confirmation dialog (one-tap principle, CLAUDE.md §4).
  * ---------------------------------------------------------------------------*/
 export function QuickPhrasePanel({ emotion, onSpeak }: QuickPhrasePanelProps) {
   const { lang, t } = useI18n();
   void emotion; // emotion is read by useTTS via the parent; tile UI doesn't change yet
 
   return (
-    <section
-      aria-labelledby="quick-phrase-heading"
-      className="w-full"
-    >
-      <header className="mb-gap-sm flex items-baseline justify-between px-2">
-        <h2
-          id="quick-phrase-heading"
-          className="text-label-lg text-ink"
-        >
-          {t("panel.heading")}
-        </h2>
-        <p className="text-body text-muted">{t("panel.hint")}</p>
-      </header>
-
+    <section aria-label={t("panel.heading")} className="h-full">
       <ul
-        className="grid grid-cols-5 gap-gap"
+        className="grid h-full grid-cols-5 grid-rows-2 gap-gap-sm"
         role="list"
       >
         {QUICK_PHRASES.map((phrase) => (
-          <li key={phrase.id} className="list-none">
+          <li key={phrase.id} className="min-h-0 list-none">
             <button
               type="button"
               onClick={() => onSpeak(phrase)}
               aria-label={phrase.label[lang]}
               className={[
-                "group relative w-full",
-                "aspect-square min-h-tile-min",
+                "group relative h-full w-full",
                 "rounded-tile shadow-tile",
                 "border-2 border-ink/10",
-                "flex flex-col items-center justify-center gap-2",
+                "flex flex-col items-center justify-center gap-1",
                 "text-white",
                 "transition-[transform,box-shadow] duration-100",
                 "active:translate-y-[2px] active:shadow-tile-pressed",
@@ -64,11 +55,11 @@ export function QuickPhrasePanel({ emotion, onSpeak }: QuickPhrasePanelProps) {
             >
               <span
                 aria-hidden
-                className="text-[72px] leading-none drop-shadow"
+                className="leading-none text-[clamp(34px,9vh,72px)] drop-shadow"
               >
                 {phrase.icon}
               </span>
-              <span className="text-label font-bold tracking-tight">
+              <span className="text-[clamp(18px,3.2vh,32px)] font-bold leading-tight tracking-tight">
                 {phrase.label[lang]}
               </span>
             </button>

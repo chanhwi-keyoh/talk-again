@@ -8,6 +8,9 @@ interface VoiceStatusChipProps {
   fallbackActive: boolean;
   systemVoiceReason: ReturnType<typeof getWebSpeechVoiceReason>;
   speaking: boolean;
+  /** Top-bar variant: caps width and truncates the (occasionally long) label
+   *  so the chip never pushes the SOS / settings controls off the header. */
+  compact?: boolean;
 }
 
 /**
@@ -29,6 +32,7 @@ export function VoiceStatusChip({
   fallbackActive,
   systemVoiceReason,
   speaking,
+  compact = false,
 }: VoiceStatusChipProps) {
   const { t } = useI18n();
 
@@ -65,13 +69,17 @@ export function VoiceStatusChip({
       role="status"
       aria-live="polite"
       data-active-engine={active}
-      className="flex items-center gap-3 rounded-pill bg-soft px-5 py-3 text-body text-ink"
+      title={message}
+      className={[
+        "flex min-w-0 items-center gap-3 rounded-pill bg-soft text-ink",
+        compact ? "max-w-[240px] px-4 py-2.5 text-body" : "px-5 py-3 text-body",
+      ].join(" ")}
     >
       <span
         aria-hidden
-        className={`inline-block h-4 w-4 rounded-pill ${dotClass}`}
+        className={`inline-block h-4 w-4 shrink-0 rounded-pill ${dotClass}`}
       />
-      <span>{message}</span>
+      <span className={compact ? "truncate" : ""}>{message}</span>
     </div>
   );
 }

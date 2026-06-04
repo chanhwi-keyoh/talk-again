@@ -2,16 +2,15 @@ import { useCallback, useEffect, useState } from "react";
 import { ConversationPanel } from "@/components/ConversationPanel";
 import { EmergencyBanner } from "@/components/EmergencyBanner";
 import { EmergencyButton } from "@/components/EmergencyButton";
-import { EmotionPicker } from "@/components/EmotionPicker";
+import { EmotionBar } from "@/components/EmotionBar";
 import { PersonaOnboarding } from "@/components/PersonaOnboarding";
 import { PortraitHint } from "@/components/PortraitHint";
 import { QuickPhrasePanel } from "@/components/QuickPhrasePanel";
 import { SettingsPanel } from "@/components/SettingsPanel";
-import { TabSwitcher, type TabDef } from "@/components/TabSwitcher";
 import { VoiceStatusChip } from "@/components/VoiceStatusChip";
 import { useEmergency } from "@/lib/emergency";
 import { useEmotion } from "@/lib/emotion";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type MessageKey } from "@/lib/i18n";
 import { usePersona } from "@/lib/persona";
 import { useTTS } from "@/hooks/useTTS";
 import { useVoicePref } from "@/lib/voicePref";
@@ -19,22 +18,38 @@ import type { Phrase } from "@/types";
 import { appendExchange } from "@/lib/recentContext";
 
 /* -----------------------------------------------------------------------------
- * App shell
+ * App shell — v2.2 fixed "page shell" (landscape canonical)
  *
- * v2 layout (landscape canonical):
- *  1. PortraitHint — dismissible chip when device is portrait
- *  2. Header — title + chip + SOS + settings (or EmergencyBanner when active)
- *  3. TabSwitcher — "자주 쓰는 말" / "대화하기"
- *  4. Selected tab's content (QuickPhrasePanel or ConversationPanel)
- *  5. EmotionPicker — secondary mode selector across both tabs
+ * The viewport is a fixed full-height flex column that NEVER scrolls:
  *
- * First-run logic: if the persona has never been answered, PersonaOnboarding
- * takes over the screen on initial mount. Skippable; re-runnable via Settings.
+ *   ┌───────────────────────────────────────────────────────────────┐
+ *   │ TOP BAR (shrink-0): [tabs] ……… [voice chip][🆘 SOS][⚙]         │
+ *   ├───────────────────────────────────────────────────────────────┤
+ *   │ BODY (flex-1, overflow-hidden): the selected page fills it      │
+ *   │   · quick → QuickPhrasePanel (5×2 grid fills height)            │
+ *   │   · conversation → ConversationPanel (heard | reply two-pane)   │
+ *   ├───────────────────────────────────────────────────────────────┤
+ *   │ EMOTION BAR (shrink-0): mood, always visible across both pages  │
+ *   └───────────────────────────────────────────────────────────────┘
+ *
+ * Why: a landscape phone is wide but short (~380px tall). The old single
+ * scrolling column buried the mood picker below the fold and forced the elder
+ * to scroll to find buttons — exactly what the elderly-UX rules forbid (key
+ * actions near the top, predictable positions, no hidden scrolling). Fixing the
+ * chrome top & bottom and letting only the body change keeps every control in
+ * the same place every time.
+ *
+ * The SOS button stays in the top bar on every page (CLAUDE.md: Emergency must
+ * always be visible & one-tap). During an active broadcast the header is
+ * replaced by EmergencyBanner.
+ *
+ * First-run: PersonaOnboarding takes over on initial mount if the persona has
+ * never been answered. Skippable; re-runnable from Settings.
  * ---------------------------------------------------------------------------*/
 
 type PageKey = "quick" | "conversation";
 
-const TABS: ReadonlyArray<TabDef<PageKey>> = [
+const TABS: ReadonlyArray<{ key: PageKey; label: MessageKey; icon: string }> = [
   { key: "quick", label: "tab.quick", icon: "🗨️" },
   { key: "conversation", label: "tab.conversation", icon: "💬" },
 ];
@@ -95,62 +110,87 @@ export default function App() {
   const showHardUnavailable = !ready;
 
   return (
-    <div className="flex min-h-full flex-col bg-canvas text-ink">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-canvas text-ink">
       <PortraitHint />
 
       {emergencyActive ? (
         <EmergencyBanner />
       ) : (
-        <header className="flex items-center justify-between gap-gap px-10 pt-8 pb-6">
-          <div>
-            <h1 className="text-title">{t("app.title")}</h1>
-            <p className="mt-2 text-body text-muted">{t("app.tagline")}</p>
-          </div>
+        <header className="flex shrink-0 items-center gap-gap-sm border-b-2 border-border px-6 py-2">
+          <nav
+            role="tablist"
+            aria-label={lang === "ko" ? "화면 선택" : "Select view"}
+            className="flex gap-gap-sm"
+          >
+            {TABS.map((tab) => {
+              const selected = page === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  onClick={() => setPage(tab.key)}
+                  className={[
+                    "flex min-h-[52px] items-center gap-2 rounded-tile border-4 px-4 py-1.5 text-[20px] font-bold shadow-tile active:shadow-tile-pressed",
+                    selected
+                      ? "border-ink bg-ink text-canvas"
+                      : "border-border bg-soft text-ink",
+                  ].join(" ")}
+                >
+                  <span aria-hidden className="text-[24px] leading-none">
+                    {tab.icon}
+                  </span>
+                  <span>{t(tab.label)}</span>
+                </button>
+              );
+            })}
+          </nav>
 
-          <div className="flex items-center gap-gap-sm">
+          <div className="ml-auto flex min-w-0 items-center gap-gap-sm">
             <VoiceStatusChip
+              compact
               preferred={preferredEngine}
               active={activeEngine}
               fallbackActive={fallbackActive}
               systemVoiceReason={systemVoiceReason}
               speaking={speaking}
             />
-            <EmergencyButton />
+            <EmergencyButton compact />
             <button
               type="button"
               onClick={() => setSettingsOpen(true)}
               aria-label={t("settings.open")}
-              className="flex min-h-tile-min min-w-tile-min flex-col items-center justify-center gap-2 rounded-tile border-2 border-ink bg-soft px-8 py-4 text-label text-ink shadow-tile active:shadow-tile-pressed"
+              className="flex min-h-[52px] items-center justify-center rounded-tile border-2 border-ink bg-soft px-4 text-ink shadow-tile active:shadow-tile-pressed"
             >
-              <span aria-hidden className="text-[48px] leading-none">
+              <span aria-hidden className="text-[26px] leading-none">
                 ⚙
               </span>
-              <span>{t("settings.open")}</span>
             </button>
           </div>
         </header>
       )}
 
-      <main className="flex-1 px-10 pb-10">
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden px-6 py-3">
         {showHardUnavailable && (
           <p
             role="alert"
-            className="mb-gap-sm rounded-tile border-2 border-phrase-wait bg-phrase-wait/10 px-6 py-4 text-body text-ink"
+            className="mb-2 shrink-0 rounded-tile border-2 border-phrase-wait bg-phrase-wait/10 px-4 py-2 text-body text-ink"
           >
             {t("voice.notReady")}
           </p>
         )}
 
-        <TabSwitcher tabs={TABS} current={page} onChange={setPage} />
-
-        {page === "quick" ? (
-          <QuickPhrasePanel emotion={emotion} onSpeak={handleSpeakPhrase} />
-        ) : (
-          <ConversationPanel />
-        )}
-
-        <EmotionPicker />
+        <div className="min-h-0 flex-1">
+          {page === "quick" ? (
+            <QuickPhrasePanel emotion={emotion} onSpeak={handleSpeakPhrase} />
+          ) : (
+            <ConversationPanel />
+          )}
+        </div>
       </main>
+
+      <EmotionBar />
 
       <SettingsPanel
         open={settingsOpen}

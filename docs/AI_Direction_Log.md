@@ -278,3 +278,30 @@
 - `npm run typecheck` ✓
 - `npm run build` ✓ (169.5 KB JS, no size change)
 - Manual check (user): SOS button → confirm natural repetition past 10 s, and immediate stop on second tap.
+
+---
+
+## Entry 7 — 2026-06-04 · Landscape "Page Shell" — No-Scroll Layout
+
+**Request** (user, after living with v2)
+- "가로 + 지금 레이아웃인 스크롤은 사용하기 불편했어. 개선할방법 아이디에이션 해보자" — the landscape build still scrolled, and scrolling to reach controls is exactly what the elderly-UX rules forbid. After ideation he chose: keep landscape, switch to a **page/tab layout**, and dock the **emotion picker as a bottom fixed bar**.
+
+**What Claude Code shipped**
+- `src/App.tsx` — rebuilt the shell into a fixed full-viewport flex column that never scrolls: `h-[100dvh] flex flex-col overflow-hidden`, with a `shrink-0` top bar, a `flex-1 min-h-0 overflow-hidden` body that swaps "pages" (Quick / Conversation), and a `shrink-0` `EmotionBar` footer. Tabs, the voice chip, the always-visible SOS button, and Settings all live inline in the one top bar.
+- `src/components/EmotionBar.tsx` (new) — the radial `EmotionPicker` flattened into a slim 7-tile footer row so mood stays on screen on every page instead of being buried below the fold. `EmotionPicker.tsx` deleted.
+- `src/components/QuickPhrasePanel.tsx` — dropped the in-panel heading and `aspect-square`; the 5×2 grid now *fills* the body via `h-full`, and icon/label use `clamp(min, vh, max)` so tiles shrink on a short landscape phone but grow back on a tall iPad.
+- `src/components/ConversationPanel.tsx` — became a side-by-side two-pane grid (🎤 heard | 💬 reply) so the tall three-block stack no longer overflows.
+- `EmergencyButton` / `VoiceStatusChip` — added `compact` top-bar variants.
+
+**The height-crunch fixes (this pass)**
+- A landscape phone is ~390 px tall. After the 100 px header + 77 px emotion bar, the Conversation transcript field had collapsed to **28 px** — unusable. Header trimmed to ~83 px (tabs/SOS/settings to `min-h-[52–56px]`, smaller glyphs).
+- Heard pane restructured: the `?` question toggle and `↻` start-over moved up into the **label row** as compact icon-only buttons (≥48 px, `aria-label` carries meaning), and the control row collapsed to a single non-wrapping line (`듣기` / `답변 받기`). Net effect: transcript field recovered to a usable ~56–60 px (~2 lines, scrolls internally for more).
+- The persona nudge ("아직 할아버지 정보가 없어요…") was a second centered paragraph in the reply placeholder; with `justify-center` its overflow pushed *up into the label* and the two collided. Re-pinned it as a compact `shrink-0` footnote at the bottom of the reply pane.
+
+**Design decisions**
+- **Fixed chrome, swapping body** — keeping the top bar and emotion bar in the same place on every page satisfies the "predictable positions / key actions near the top / no hidden scrolling" rules better than one long scroll column did.
+- **Icon-only secondary controls, accepted trade-off** — `?` and `↻` lose visible text labels to fit the label row; primary actions (`듣기` / `답변 받기`) keep full labels. The hard 390 px height budget made this the right call; both keep `aria-label`s and the `?` toggle shows state by going dark.
+
+**Verification**
+- `npm run build` ✓
+- Preview @ 844×390 (landscape phone), DOM-measured: no scroll on either tab (`scrollHeight 390 === clientHeight 390`); transcript field 56–60 px with a transcript present; reply pane label/placeholder no longer overlap.
