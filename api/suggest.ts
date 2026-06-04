@@ -14,7 +14,7 @@
  *     pay ~10% of the input cost on the cached portion.
  *   - Edge runtime + 10 s function timeout (vercel default for edge).
  *
- * Input  (JSON POST): { transcript, persona, emotion?, recentExchanges? }
+ * Input  (JSON POST): { transcript, persona, partner?, emotion?, recentExchanges? }
  * Output (success):   { suggestions: [string, string, string] }
  * Output (error):     JSON with appropriate HTTP code.
  * ---------------------------------------------------------------------------*/
@@ -41,6 +41,11 @@ interface PersonaInput {
 interface ExchangeInput {
   theyHeard?: string;
   heSaid?: string;
+}
+
+interface PartnerInput {
+  name?: string;
+  speechLevel?: "casual" | "polite";
 }
 
 function json(status: number, body: unknown): Response {
@@ -112,8 +117,29 @@ function buildUserMessage(
   transcript: string,
   emotion: string | undefined,
   recent: ReadonlyArray<ExchangeInput>,
+  partner: PartnerInput | undefined,
 ): string {
   const lines: string[] = [];
+
+  // Who he is speaking to. Lives in the user message (not the cached system
+  // prompt) because it changes per conversation. The speech-level line OVERRIDES
+  // the system prompt's default 해요/합니다체.
+  if (partner?.name || partner?.speechLevel) {
+    if (partner.name) {
+      lines.push(`He is speaking to: ${partner.name}.`);
+    }
+    if (partner.speechLevel === "casual") {
+      lines.push(
+        "Speak to this person in 반말 (informal, intimate Korean) — this is someone close like a grandchild or spouse.",
+      );
+    } else if (partner.speechLevel === "polite") {
+      lines.push(
+        "Speak to this person in 존댓말 (polite Korean) — e.g. a doctor, a neighbour, or a guest.",
+      );
+    }
+    lines.push("");
+  }
+
   if (recent.length > 0) {
     lines.push("Recent conversation (oldest first):");
     for (const x of recent) {
@@ -201,6 +227,7 @@ export default async function handler(req: Request): Promise<Response> {
   let payload: {
     transcript?: unknown;
     persona?: unknown;
+    partner?: unknown;
     emotion?: unknown;
     recentExchanges?: unknown;
   };
@@ -222,6 +249,11 @@ export default async function handler(req: Request): Promise<Response> {
       ? (payload.persona as PersonaInput)
       : undefined;
 
+  const partner: PartnerInput | undefined =
+    payload.partner && typeof payload.partner === "object"
+      ? (payload.partner as PartnerInput)
+      : undefined;
+
   const emotion =
     typeof payload.emotion === "string" ? payload.emotion : undefined;
 
@@ -232,7 +264,12 @@ export default async function handler(req: Request): Promise<Response> {
     : [];
 
   const systemPrompt = buildSystemPrompt(persona);
-  const userMessage = buildUserMessage(transcript, emotion, recentExchanges);
+  const userMessage = buildUserMessage(
+    transcript,
+    emotion,
+    recentExchanges,
+    partner,
+  );
 
   const upstream = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { usePersona } from "@/lib/persona";
+import { usePartner, partnerForRequest } from "@/lib/partner";
 import { useEmotion } from "@/lib/emotion";
 import { useTTS } from "@/hooks/useTTS";
 import { useSTT } from "@/hooks/useSTT";
@@ -44,6 +45,7 @@ type Phase =
 export function ConversationPanel() {
   const { t } = useI18n();
   const { persona, hasBeenSet } = usePersona();
+  const { current: partner, currentId: partnerId } = usePartner();
   const { emotion } = useEmotion();
   const { speak } = useTTS();
   const stt = useSTT("ko-KR");
@@ -103,13 +105,14 @@ export function ConversationPanel() {
     setErrorKey(null);
 
     try {
-      const recent = await readRecentExchanges(5);
+      const recent = await readRecentExchanges(partnerId, 5);
       const res = await fetch("/api/suggest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           transcript,
           persona: hasBeenSet ? persona : undefined,
+          partner: partnerForRequest(partner),
           emotion,
           recentExchanges: recent.map((r) => ({
             theyHeard: r.theyHeard,
@@ -134,7 +137,7 @@ export function ConversationPanel() {
       setErrorKey("aiUnavailable");
       setPhase("error");
     }
-  }, [editedTranscript, persona, hasBeenSet, emotion]);
+  }, [editedTranscript, persona, hasBeenSet, partner, partnerId, emotion]);
 
   const speakSuggestion = useCallback(
     (text: string) => {
@@ -143,9 +146,10 @@ export function ConversationPanel() {
         timestamp: Date.now(),
         theyHeard: editedTranscript.trim(),
         heSaid: text,
+        partnerId: partnerId ?? undefined,
       });
     },
-    [speak, emotion, editedTranscript],
+    [speak, emotion, editedTranscript, partnerId],
   );
 
   const startOver = useCallback(() => {

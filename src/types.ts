@@ -36,14 +36,38 @@ export interface Persona {
   completedAt?: number;
 }
 
+/** How the elder speaks toward a given conversation partner.
+ *  - "casual": 반말 (informal, intimate — e.g. toward grandchildren)
+ *  - "polite": 존댓말 (polite — e.g. toward a doctor, a neighbour)            */
+export type SpeechLevel = "casual" | "polite";
+
+/** One conversation partner. Lightweight by design (CLAUDE.md scope decision):
+ *  just a 호칭 and a speech level. Knowing WHO the elder is talking to does two
+ *  things — it scopes the short-term memory so one person's conversation never
+ *  bleeds into another's (see recentContext.ts), and it tells the AI whether to
+ *  reply in 반말 or 존댓말. Stored in localStorage; never sent anywhere but the
+ *  suggestion request. */
+export interface Partner {
+  id: string;
+  /** 호칭 — what this person is to him (e.g. "손녀", "할머니", "의사 선생님"). */
+  name: string;
+  speechLevel: SpeechLevel;
+}
+
 /** One past exchange. Stored internally in IndexedDB to give AI Suggestions
  *  short-term memory of the conversation. NEVER surfaced as a UI viewer
- *  (privacy principle 1.4 in PLAN_v2.md). */
+ *  (privacy principle 1.4 in PLAN_v2.md).
+ *
+ *  `partnerId` scopes the memory: a reply suggestion only ever sees exchanges
+ *  tagged with the partner currently selected, so the doctor never inherits the
+ *  thread he was just having with his granddaughter. Optional because entries
+ *  written before the partner feature existed carry no tag (they're ignored). */
 export interface Exchange {
   id?: number;
   timestamp: number;
   theyHeard: string;
   heSaid: string;
+  partnerId?: string;
 }
 
 /** One quick-phrase tile. `speech` is the actual string sent to TTS in each

@@ -4,6 +4,7 @@ import { EmergencyBanner } from "@/components/EmergencyBanner";
 import { EmergencyButton } from "@/components/EmergencyButton";
 import { EmotionBar } from "@/components/EmotionBar";
 import { EmotionSheet } from "@/components/EmotionSheet";
+import { PartnerSheet } from "@/components/PartnerSheet";
 import { PersonaOnboarding } from "@/components/PersonaOnboarding";
 import { PortraitHint } from "@/components/PortraitHint";
 import { QuickPhrasePanel } from "@/components/QuickPhrasePanel";
@@ -13,6 +14,7 @@ import { useEmergency } from "@/lib/emergency";
 import { EMOTION_META, useEmotion } from "@/lib/emotion";
 import { useI18n, type MessageKey } from "@/lib/i18n";
 import { usePersona } from "@/lib/persona";
+import { usePartner } from "@/lib/partner";
 import { useTTS } from "@/hooks/useTTS";
 import { useVoicePref } from "@/lib/voicePref";
 import type { Phrase } from "@/types";
@@ -61,6 +63,7 @@ export default function App() {
   const { emotion } = useEmotion();
   const { isActive: emergencyActive } = useEmergency();
   const { persona, complete } = usePersona();
+  const { current: partner, currentId: partnerId } = usePartner();
   const {
     ready,
     speaking,
@@ -71,6 +74,7 @@ export default function App() {
   } = useTTS();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [emotionSheetOpen, setEmotionSheetOpen] = useState(false);
+  const [partnerSheetOpen, setPartnerSheetOpen] = useState(false);
   const [page, setPage] = useState<PageKey>("quick");
   const [onboardingOpen, setOnboardingOpen] = useState(false);
 
@@ -95,9 +99,10 @@ export default function App() {
         timestamp: Date.now(),
         theyHeard: "",
         heSaid: phrase.speech.ko,
+        partnerId: partnerId ?? undefined,
       });
     },
-    [lang, emotion, speak],
+    [lang, emotion, speak, partnerId],
   );
 
   const dismissOnboarding = useCallback(() => {
@@ -148,6 +153,27 @@ export default function App() {
               );
             })}
           </nav>
+
+          {/* Current conversation partner — visible on every page so it's
+              always clear who he's speaking to. Tapping opens the picker;
+              switching partner starts a fresh, separately-remembered thread. */}
+          <button
+            type="button"
+            onClick={() => setPartnerSheetOpen(true)}
+            aria-label={
+              partner
+                ? t("partner.chip.aria").replace("{name}", partner.name)
+                : t("partner.chip.aria.none")
+            }
+            className="ml-2 flex min-h-[52px] min-w-0 items-center gap-2 rounded-tile border-2 border-ink bg-soft px-3 text-ink shadow-tile active:shadow-tile-pressed"
+          >
+            <span aria-hidden className="text-[22px] leading-none">
+              👥
+            </span>
+            <span className="max-w-[10ch] truncate text-[17px] font-bold leading-none">
+              {partner ? partner.name : t("partner.none")}
+            </span>
+          </button>
 
           <div className="ml-auto flex min-w-0 items-center gap-gap-sm">
             {/* Current-mood button — SHORT screens only. On a landscape phone
@@ -214,6 +240,11 @@ export default function App() {
       <EmotionSheet
         open={emotionSheetOpen}
         onClose={() => setEmotionSheetOpen(false)}
+      />
+
+      <PartnerSheet
+        open={partnerSheetOpen}
+        onClose={() => setPartnerSheetOpen(false)}
       />
 
       <SettingsPanel

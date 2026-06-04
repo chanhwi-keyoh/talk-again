@@ -17,7 +17,10 @@ import type { Exchange } from "@/types";
 const DB_NAME = "talkagain-context";
 const STORE = "exchanges";
 const VERSION = 1;
-const MAX_KEPT = 10;
+// Kept higher than the per-request window because the store now holds several
+// partners' threads interleaved; pruning is global (oldest overall), so we keep
+// a deeper buffer to make sure each partner retains enough recent turns.
+const MAX_KEPT = 40;
 
 let dbPromise: Promise<IDBDatabase | null> | null = null;
 
@@ -89,11 +92,20 @@ async function prune(): Promise<void> {
   });
 }
 
-/** Read the N most recent exchanges (newest last). Default N = MAX_KEPT.
- *  Used only by the code path that POSTs to /api/suggest. */
+/** Read the N most recent exchanges for ONE partner (newest last).
+ *  Used only by the code path that POSTs to /api/suggest.
+ *
+ *  Scoping by partner is what stops the granddaughter's thread from leaking
+ *  into the doctor's conversation. We scan newest-first across the whole store
+ *  (it's small, capped at MAX_KEPT) and keep only those tagged with this
+ *  partner. Entries with no `partnerId` predate the feature and are skipped —
+ *  passing `partnerId` of `null`/`undefined` therefore yields nothing, which is
+ *  the safe default (no context rather than the wrong context). */
 export async function readRecentExchanges(
-  limit = MAX_KEPT,
+  partnerId: string | null | undefined,
+  limit = 5,
 ): Promise<ReadonlyArray<Exchange>> {
+  if (!partnerId) return [];
   const db = await openDB();
   if (!db) return [];
   return new Promise((resolve) => {
@@ -104,7 +116,8 @@ export async function readRecentExchanges(
     cursorReq.onsuccess = () => {
       const cursor = cursorReq.result;
       if (!cursor || out.length >= limit) return;
-      out.push(cursor.value as Exchange);
+      const value = cursor.value as Exchange;
+      if (value.partnerId === partnerId) out.push(value);
       cursor.continue();
     };
     tx.oncomplete = () => resolve(out.reverse()); // chronological order for prompt

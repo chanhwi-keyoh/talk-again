@@ -349,3 +349,29 @@
 - `npm run build` ✓ (192.75 kB JS).
 - Preview @ 844×390 (phone): bottom `EmotionBar` `display:none`, header mood button visible → opens the drawer; picking 행복 applied it and closed the drawer, header chip updated to "지금 기분: 행복"; no page scroll. Settings tiles measured ~107×139 / ~101 px.
 - Preview @ 1180×820 (iPad): bottom `EmotionBar` visible with all 7 moods, header mood button `display:none`; no scroll.
+
+---
+
+## Entry 10 — 2026-06-04 · Conversation Partner — Per-Person Context & Speech Level
+
+**Request** (user, after asking how the AI "remembers" previous turns)
+- The short-term memory (`recentContext`) had no notion of *who* the elder was talking to, so a thread with one person bled into the next person's reply suggestions. He also wanted the AI to speak differently depending on the listener. Scope chosen together: **lightweight — 호칭 + 말투 (반말/존댓말) only** (richer per-partner topics/notes deferred).
+
+**What Claude Code shipped**
+- `src/types.ts` — `Partner { id, name, speechLevel }` + `SpeechLevel = "casual" | "polite"`; `Exchange.partnerId?` to tag stored turns.
+- `src/lib/partner.ts` (new) — context, `usePartner` hook, `SPEECH_LEVEL_META`, two seed partners (`가족`/casual, `이웃·손님`/polite) so the feature works with zero setup, and `partnerForRequest()` so client & server agree on the wire shape.
+- `src/components/PartnerProvider.tsx` (new) — localStorage-backed list + current id (mirrors `PersonaProvider`); resolves a fallback partner if the stored id is gone so something is always active.
+- `src/lib/recentContext.ts` — `readRecentExchanges(partnerId, limit)` now **filters by partner**; entries with no `partnerId` (pre-feature) are skipped, and a null/undefined partner returns nothing (safe default: no context over wrong context). `MAX_KEPT` 10→40 since several threads now interleave under global pruning.
+- `api/suggest.ts` — accepts `partner`; injects "He is speaking to: …" + a 반말/존댓말 instruction into the **user message** (not the cached system prompt, since it changes per conversation). The speech-level line overrides the system default 해요/합니다체.
+- `src/components/PartnerSheet.tsx` (new) — right-edge drawer (same visible-trigger pattern as `EmotionSheet`, no swipe-only): tap a partner to select+close, spaced 🗑 delete with confirm, and an add form (호칭 + 반말/존댓말 toggle).
+- `src/App.tsx` — header partner chip (👥 + name, visible on every page) opening the sheet; quick-phrase taps now tagged with `partnerId`. `ConversationPanel.tsx` reads/sends the current partner.
+- `src/lib/i18n.ts` — ko/en `partner.*` strings.
+
+**Design decisions**
+- **Switching partner = the "new conversation" boundary.** This also resolves the earlier "no session boundary" concern: memory is scoped per partner instead of one global rolling log.
+- **Partner in the user message, persona in the cached system prompt.** Persona is stable (cacheable); partner is per-conversation, so keeping it out of the cached block preserves the prompt-cache hit.
+- **Speech level set at add-time only** (change = delete + re-add) — kept deliberately lightweight per the agreed scope.
+
+**Verification**
+- `npm run build` ✓ (200.40 kB JS); `tsc -p tsconfig.app.json --noEmit` ✓.
+- Manual in-app verification still pending.
