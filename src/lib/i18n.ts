@@ -125,7 +125,7 @@ export const messages = {
     "conversation.hint":
       "상대가 한 말을 들으면 어울리는 답변 세 가지를 만들어 드려요.",
     "conversation.listen": "듣기 시작",
-    "conversation.stopListening": "그만 듣기",
+    "conversation.stopListening": "그만 듣고 답받기",
     "conversation.requesting": "답변 만드는 중…",
     "conversation.ask": "답변 받기",
     "conversation.askAgain": "다시 답변 받기",
@@ -271,7 +271,7 @@ export const messages = {
     "conversation.hint":
       "Listen to what the other person said, then we'll suggest three replies he might want to say.",
     "conversation.listen": "Start listening",
-    "conversation.stopListening": "Stop listening",
+    "conversation.stopListening": "Stop & get replies",
     "conversation.requesting": "Thinking…",
     "conversation.ask": "Get replies",
     "conversation.askAgain": "Try again",

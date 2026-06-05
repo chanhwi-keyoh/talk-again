@@ -92,21 +92,6 @@ export function ConversationPanel() {
     stt.start();
   }, [stt]);
 
-  const stopListening = useCallback(() => {
-    stt.stop();
-    // Stay on this transcript even after STT stops; user may want to edit.
-    setPhase(editedTranscript.trim() ? "transcribed" : "idle");
-  }, [stt, editedTranscript]);
-
-  const toggleQuestion = useCallback(() => {
-    setEditedTranscript((prev) => {
-      const trimmed = prev.trim();
-      if (!trimmed) return prev;
-      if (trimmed.endsWith("?")) return trimmed.slice(0, -1).trimEnd();
-      return `${trimmed}?`;
-    });
-  }, []);
-
   const requestSuggestions = useCallback(async () => {
     const transcript = editedTranscript.trim();
     if (!transcript) return;
@@ -147,6 +132,24 @@ export function ConversationPanel() {
       setPhase("error");
     }
   }, [editedTranscript, persona, hasBeenSet, partner, partnerId, emotion]);
+
+  // Stopping the mic immediately asks for replies — one tap fewer for the
+  // elder. He can still edit the transcript and re-ask ("다시 답변 받기") if it
+  // was misheard. If nothing was captured, just return to idle.
+  const stopListening = useCallback(() => {
+    stt.stop();
+    if (editedTranscript.trim()) void requestSuggestions();
+    else setPhase("idle");
+  }, [stt, editedTranscript, requestSuggestions]);
+
+  const toggleQuestion = useCallback(() => {
+    setEditedTranscript((prev) => {
+      const trimmed = prev.trim();
+      if (!trimmed) return prev;
+      if (trimmed.endsWith("?")) return trimmed.slice(0, -1).trimEnd();
+      return `${trimmed}?`;
+    });
+  }, []);
 
   // OPENER mode: the elder starts the conversation. No transcript — we send an
   // intent instead and get three opening lines back into the same reply pane.
